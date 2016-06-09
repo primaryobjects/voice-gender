@@ -15,7 +15,7 @@ The CSV file contains the following fields:
 
 "meanfreq","sd","median","Q25","Q75","IQR","skew","kurt","sp.ent","sfm","mode","centroid","meanfun","minfun","maxfun","meandom","mindom","maxdom","dfrange","modindx","label"
 
-"label" cooresponds to the gender classification of the sample. The remaining fields are acoustic properties, detailed [below](#acoustic-properties-measured).
+"label" corresponds to the gender classification of the sample. The remaining fields are acoustic properties, detailed [below](#acoustic-properties-measured).
 
 In R, you can load the dataset file [data.bin](https://raw.githubusercontent.com/primaryobjects/voice-gender/master/data.bin) directly as a data.frame with the command ```load('data.bin')```.
 
