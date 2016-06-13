@@ -8,6 +8,7 @@ library(seewave)
 library(gbm)
 library(caret)
 library(xgboost)
+library(randomForest)
 
 specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
   # To use parallel processing: library(devtools), install_github('nathanvan/parallelsugar')
