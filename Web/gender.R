@@ -231,7 +231,7 @@ gender <- function(filePath, model = 1, session = NULL) {
   # Restore path.
   setwd(currentPath)
   
-  if (model == 2 || model == 4) {
+  if ((model == 2 || model == 4) && is.null(session)) {
     acoustics[,1:3] <- NULL
     acoustics[,'peakf'] <- NULL
     acoustics <- as.matrix(acoustics)
