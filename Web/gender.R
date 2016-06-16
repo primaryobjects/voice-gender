@@ -9,6 +9,7 @@ library(gbm)
 library(caret)
 library(xgboost)
 library(randomForest)
+library(e1071)
 
 specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
   # To use parallel processing: library(devtools), install_github('nathanvan/parallelsugar')
@@ -170,12 +171,12 @@ processFolder <- function(folderName) {
 
 gender <- function(filePath, model = 1, session = NULL) {
   if (model == 1) {
-    print('Using model: Boosted Tree Small')
-    if (!exists('genderBoosted')) {
-      load('data/model1.bin')
+    print('Using model: SVM')
+    if (!exists('genderSvm')) {
+      load('data/svm.bin')
     }
     
-    fit <- genderBoosted
+    fit <- genderSvm
   }
   else if (model == 2) {
     print('Using model: XGBoost Small')
@@ -231,7 +232,7 @@ gender <- function(filePath, model = 1, session = NULL) {
   # Restore path.
   setwd(currentPath)
   
-  if ((model == 2 || model == 4) && is.null(session)) {
+  if ((model == 1 || model == 2 || model == 4) && is.null(session)) {
     acoustics[,1:3] <- NULL
     acoustics[,'peakf'] <- NULL
     acoustics <- as.matrix(acoustics)
@@ -239,7 +240,10 @@ gender <- function(filePath, model = 1, session = NULL) {
 
   result <- predict(fit, newdata=acoustics)
   print(result)
-  if (model == 1 || model == 3) {
+  if (model == 1) {
+    prob <- 0
+  }
+  else if (model == 3) {
     prob <- predict(fit, newdata=acoustics, type='prob')[,2]
     print(prob)
   }

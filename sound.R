@@ -1,17 +1,17 @@
-packages <- c('tuneR', 'seewave', 'fftw', 'caTools', 'randomForest', 'caret', 'warbleR', 'mice', 'e1071', 'rpart', 'rpart-plot', 'xgboost')
+packages <- c('tuneR', 'seewave', 'fftw', 'caTools', 'randomForest', 'warbleR', 'mice', 'e1071', 'rpart', 'rpart-plot', 'xgboost', 'e1071')
 if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
   install.packages(setdiff(packages, rownames(installed.packages())))  
 }
 library(tuneR)
 library(seewave)
 library(caTools)
-library(caret)
 library(rpart)
 library(rpart.plot)
 library(randomForest)
 library(warbleR)
 library(mice)
 library(xgboost)
+library(e1071)
 
 specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
   # To use parallel processing: library(devtools), install_github('nathanvan/parallelsugar')
@@ -281,16 +281,93 @@ predictForest <- predict(genderTunedForest, newdata=test)
 table(test$label, predictForest)
 (412 + 416) / nrow(test)
 
+# Try svm (gamma and cost determined from tuning).
+set.seed(777)
+genderSvm <- svm(label ~ ., data=train, gamma=0.21, cost=8)
+
+# Accuracy: 0.96
+predictSvm <- predict(genderSvm, train)
+table(predictSvm, train$label)
+(1076+1058)/nrow(train)
+
+# Accuracy: 0.85
+predictSvm <- predict(genderSvm, test)
+table(predictSvm, test$label)
+(423+386)/nrow(test)
+
+# With no tuning, Accuracy: 0.84
+#predictSvm <- predict(genderSvm, train)
+#table(predictSvm, train$label)
+#(954 + 902) / nrow(train)
+
+# Accuracy: 0.81
+#predictSvm <- predict(genderSvm, test)
+#table(predictSvm, test$label)
+
+# Try a tuned svm.
+#set.seed(777)
+#svmTune <- tune.svm(label ~ ., data=train, sampling='fix', gamma = 2^c(-8,-4,0,4), cost = 2^c(-8,-4,-2,0))
+# The darker blue is the best values for a model.
+#plot(svmTune)
+
+# We can re-run the tuning with more specific values for gamma (epsilon) and cost.
+#set.seed(777)
+#svmTune <- tune.svm(label ~ ., data=train, sampling='fix', gamma = seq(0, 0.2, 0.01), cost = c(1, 2, 4))
+#genderSvm <- svmTune$best.model
+#plot(svmTune)
+
+# Accuracy: 0.91
+#predictSvm <- predict(genderSvm, train)
+#table(predictSvm, train$label)
+#(1023+1003)/nrow(train)
+
+# Accuracy: 0.83
+#predictSvm <- predict(genderSvm, test)
+#table(predictSvm, test$label)
+#(407+384)/nrow(test)
+
+# Narrow down one more time.
+#set.seed(777)
+#svmTune <- tune.svm(label ~ ., data=train, sampling='fix', gamma = seq(0.2, 0.3, 0.01), cost = c(3, 5, 8))
+#genderSvm <- svmTune$best.model
+#plot(svmTune)
+
+# Accuracy: 0.96
+#predictSvm <- predict(genderSvm, train)
+#table(predictSvm, train$label)
+#(1076+1058)/nrow(train)
+
+# Accuracy: 0.85
+#predictSvm <- predict(genderSvm, test)
+#table(predictSvm, test$label)
+#(423+386)/nrow(test)
+
+# One final tuning.
+#set.seed(777)
+#svmTune <- tune.svm(label ~ ., data=train, sampling='fix', gamma = seq(0.2, 0.25, 0.01), cost = seq(8, 12, 1))
+#genderSvm <- svmTune$best.model
+#plot(svmTune)
+
+# Accuracy: 0.97
+#predictSvm <- predict(genderSvm, train)
+#table(predictSvm, train$label)
+#(1079+1065)/nrow(train)
+
+# Accuracy: 0.85 (one less, so very tiny overfitting)
+#predictSvm <- predict(genderSvm, test)
+#table(predictSvm, test$label)
+#(422+386)/nrow(test)
+
 # Try a boosted tree model.
 # Accuracy: 0.91
-set.seed(777)
-genderBoosted <- train(label ~ ., data=train, method='gbm')
-predictBoosted <- predict(genderBoosted, newdata=train)
-confusionMatrix(predictBoosted, train$label)
+#set.seed(777)
+#genderBoosted <- train(label ~ ., data=train, method='gbm')
+#predictBoosted <- predict(genderBoosted, newdata=train)
+#confusionMatrix(predictBoosted, train$label)
 
 # Accuracy: 0.84
-predictBoosted <- predict(genderBoosted, newdata=test)
-confusionMatrix(predictBoosted, test$label)
+#predictBoosted <- predict(genderBoosted, newdata=test)
+#confusionMatrix(predictBoosted, test$label)
 
 # Try XGBoost.
 # Accuracy: 1

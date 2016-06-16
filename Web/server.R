@@ -112,7 +112,7 @@ processFile <- function(inFile, model) {
 
   unlink(path, recursive = T)
   
-  paste0('Boosted Tree Small: ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest: ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large: ', colorize(content4$label), ' (', round(content4$prob * 100), '%)')
+  paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)')
 }
 
 processUrl <- function(url, model) {
@@ -137,7 +137,7 @@ processUrl <- function(url, model) {
     # Delete temp file.
     file.remove(fileName)
     
-    content <- paste0('Boosted Tree Small: ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest: ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large: ', colorize(content4$label), ' (', round(content4$prob * 100), '%)')
+    content <- paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)')
   }
   else if (grepl('clyp.it', tolower(url))) {
     # Format url for api.
@@ -184,7 +184,7 @@ processUrl <- function(url, model) {
       content3 <- gender(wavFilePath, 3, content1$data)
       content4 <- gender(wavFilePath, 4, content1$data)
 
-      content <- paste0('Boosted Tree Small: ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest: ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large: ', colorize(content4$label), ' (', round(content4$prob * 100), '%)')
+      content <- paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)')
     }
     else {
       content <- 'Error converting mp3 to wav.'
