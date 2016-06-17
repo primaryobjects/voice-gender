@@ -209,8 +209,8 @@ gender <- function(filePath, model = 1, session = NULL) {
     if (!exists('genderTunedForest')) {
       load('data/tunedForest.bin')
     }
-    if (!exists('genderXG2')) {
-      load('data/xgboostLarge.bin')
+    if (!exists('genderXG')) {
+      load('data/xgboostSmall.bin')
     }
     if (!exists('genderSvm')) {
       load('data/svm.bin')
@@ -278,7 +278,7 @@ gender <- function(filePath, model = 1, session = NULL) {
     results2 <- predict(genderTunedForest, newdata=acoustics)
 
     mf <- as.factor(c('male', 'female'))
-    prob <- predict(genderXG2, newdata=acoustics)
+    prob <- predict(genderXG, newdata=acoustics)
     if (prob >= 0.5) {
       results3 <- mf[2]
     }
