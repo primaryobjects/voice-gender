@@ -6,7 +6,6 @@
 library(tuneR)
 library(seewave)
 library(gbm)
-library(caret)
 library(xgboost)
 library(randomForest)
 library(e1071)
@@ -181,7 +180,7 @@ gender <- function(filePath, model = 1, session = NULL) {
   else if (model == 2) {
     print('Using model: XGBoost Small')
     if (!exists('genderXG')) {
-      load('data/model2.bin')
+      load('data/xgboostSmall.bin')
     }
    
     fit <- genderXG
@@ -189,7 +188,7 @@ gender <- function(filePath, model = 1, session = NULL) {
   else if (model == 3) {
     print('Using model: Tuned Random Forest')
     if (!exists('genderTunedForest')) {
-      load('data/model3.bin')
+      load('data/tunedForest.bin')
     }
     
     fit <- genderTunedForest
@@ -197,10 +196,27 @@ gender <- function(filePath, model = 1, session = NULL) {
   else if (model == 4) {
     print('Using model: XGBoost Large')
     if (!exists('genderXG2')) {
-      load('data/model4.bin')
+      load('data/xgboostLarge.bin')
     }
     
     fit <- genderXG2
+  }
+  else if (model == 5) {
+    print('Using model: Stacked ensemble')
+    if (!exists('genderStacked')) {
+      load('data/stacked.bin')
+    }
+    if (!exists('genderTunedForest')) {
+      load('data/tunedForest.bin')
+    }
+    if (!exists('genderXG2')) {
+      load('data/xgboostLarge.bin')
+    }
+    if (!exists('genderSvm')) {
+      load('data/svm.bin')
+    }
+    
+    fit <- genderStacked
   }
   
   # Setup paths.
@@ -224,6 +240,9 @@ gender <- function(filePath, model = 1, session = NULL) {
   if (is.null(session)) {
     # Process files.
     acoustics <- specan3(data, parallel=1)
+    acoustics[,1:3] <- NULL
+    acoustics[,'peakf'] <- NULL
+    acoustics <- as.matrix(acoustics)
   }
   else {
     acoustics <- session
@@ -231,15 +250,12 @@ gender <- function(filePath, model = 1, session = NULL) {
   
   # Restore path.
   setwd(currentPath)
-  
-  if ((model == 1 || model == 2 || model == 4) && is.null(session)) {
-    acoustics[,1:3] <- NULL
-    acoustics[,'peakf'] <- NULL
-    acoustics <- as.matrix(acoustics)
-  }
 
-  result <- predict(fit, newdata=acoustics)
-  print(result)
+  if (model != 5) {
+    result <- predict(fit, newdata=acoustics)
+    print(result)
+  }
+  
   if (model == 1) {
     prob <- 0
   }
@@ -256,6 +272,26 @@ gender <- function(filePath, model = 1, session = NULL) {
     else {
       result <- mf[1]
     }
+  }
+  else if (model == 5) {
+    results1 <- predict(genderSvm, newdata=acoustics)
+    results2 <- predict(genderTunedForest, newdata=acoustics)
+
+    mf <- as.factor(c('male', 'female'))
+    prob <- predict(genderXG2, newdata=acoustics)
+    if (prob >= 0.5) {
+      results3 <- mf[2]
+    }
+    else {
+      results3 <- mf[1]
+    }
+    
+    combo <- data.frame(results1, results2, results3)
+    
+    prob <- predict(genderStacked, newdata=combo, type='prob')[,2]
+    result <- predict(genderStacked, newdata=combo)
+    
+    print(result)
   }
   
   list(label = result, prob = prob, data = acoustics)

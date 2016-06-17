@@ -385,6 +385,26 @@ results <- predict(genderXG, testx)
 table(testx[,21], results >= 0.5)
 (414 + 413) / nrow(test)
 
+# Try stacking models in an ensemble.
+results1 <- predict(genderSvm, newdata=test)
+results2 <- predict(genderTunedForest, newdata=test)
+results3 <- factor(as.numeric(predict(genderXG, testx) >= 0.5), labels = c('male', 'female'))
+combo <- data.frame(results1, results2, results3, y = test$label)
+
+# Accuracy: 0.89
+set.seed(777)
+genderStacked <- tuneRF(combo[,-4], combo[,4], stepFactor=.5, doBest=TRUE)
+predictStacked <- predict(genderStacked, newdata=combo)
+table(predictStacked, test$label)
+
+# Accuracy: 1
+results1 <- predict(genderSvm, newdata=train)
+results2 <- predict(genderTunedForest, newdata=train)
+results3 <- factor(as.numeric(predict(genderXG, trainx) >= 0.5), labels = c('male', 'female'))
+combo <- data.frame(results1, results2, results3)
+predictStacked <- predict(genderStacked, newdata=combo)
+table(predictStacked, train$label)
+
 # trans <- processFolder('trans')
 # trans$label <- c(2, 2, 1, 1, 2, 2, 1, 1)
 # trans$label <- factor(trans$label, labels=c('male', 'female'))
