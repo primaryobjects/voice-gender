@@ -405,17 +405,31 @@ combo <- data.frame(results1, results2, results3)
 predictStacked <- predict(genderStacked, newdata=combo)
 table(predictStacked, train$label)
 
-# trans <- processFolder('trans')
-# trans$label <- c(2, 2, 1, 1, 2, 2, 1, 1)
+# trans <- processFolder('sanity')
+# trans$label <- c(2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2)
 # trans$label <- factor(trans$label, labels=c('male', 'female'))
-# tpred <- predict(genderLog, newdata=trans, type='response')
-# table(trans$label, tpred >= 0.5)
-
-# tpred <- predict(genderForest, newdata=trans)
+# 
+# tpred <- predict(genderTunedForest, newdata=trans)
 # table(trans$label, tpred)
+# 
+# tpred <- predict(genderSvm, newdata=trans)
+# table(trans$label, tpred)
+# 
+# trans[,1:3] <- NULL
+# trans$peakf <- NULL
+# testx <- sapply(trans, as.numeric)
+# testx[,21] <- testx[,21] - 1
+# results <- predict(genderXG, testx)
+# table(testx[,21], results >= 0.5)
+# 
+# results1 <- predict(genderSvm, newdata=trans)
+# results2 <- predict(genderTunedForest, newdata=trans)
+# results3 <- factor(as.numeric(predict(genderXG, testx) >= 0.5), labels = c('male', 'female'))
+# combo <- data.frame(results1, results2, results3)
+# predictStacked <- predict(genderStacked, newdata=combo)
+# table(predictStacked, trans$label)
 
-# tpred <- predict(genderBoosted, newdata=trans)
-# confusionMatrix(trans$label, tpred)
+
 
 # tpred <- predict(genderCART, newdata=trans)
 # tpred.prob <- tpred[,2]
