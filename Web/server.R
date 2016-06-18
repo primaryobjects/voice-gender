@@ -51,7 +51,9 @@ shinyServer(function(input, output, session) {
     # be found.
     content <- ''
     inFile <- input$file1
-    
+
+    validate(need(grepl('.wav', tolower(inFile$name)), 'Please select a .WAV file to upload'))
+
     if (!is.null(inFile)) {
       disable('btnUrl')
       disable('url')
@@ -59,7 +61,7 @@ shinyServer(function(input, output, session) {
 
       content <- processFile(inFile, input$model)
     }
-    
+
     enable('btnUrl')
     enable('url')
     enable('file1')
@@ -71,6 +73,8 @@ shinyServer(function(input, output, session) {
     content <- ''
     url <- input$url
 
+    validate(need(url != '' && (grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))), 'Please enter a url to vocaroo or clyp.it.'))
+    
     disable('btnUrl')
     disable('url')
     disable('file1')
