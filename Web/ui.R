@@ -29,7 +29,7 @@ shinyUI(fluidPage(
             div(id='result1', style='font-size: 22px;', htmlOutput('content1')),
             div(id='result2', style='font-size: 22px;', htmlOutput('content2')),
             h4('How does it work?'),
-            p('This application uses machine learning (artificial intelligence) to determine the gender of a voice. The program was trained on a dataset of 3165 voice samples, split between male and female voices. By analyzing the acoustic properties of the voices, the program is able to achieve 89% accuracy on the test set. A detailed article on the technology and data design is coming soon.'),
+            p('This application uses machine learning (artificial intelligence) to determine the gender of a voice. The program was trained on a dataset of 3168 voice samples, split between male and female voices. By analyzing the acoustic properties of the voices, the program is able to achieve 89% accuracy on the test set. Read the technical design ', a(href='http://primaryobjects.com/2016/06/20/gender-recognition-by-voice-and-speech-analysis/', target='_blank', 'article'), ' to learn more.'),
             p('Created by ', a(href='http://primaryobjects.com/kory-becker', target='_blank', 'Kory Becker'))
   ))
 ))
