@@ -10,6 +10,7 @@ library(shinyjs)
 shinyUI(fluidPage(
   conditionalPanel(condition='!output.json',
                    tags$head(tags$script(src = "script.js"),
+                   tags$head(tags$script(src = "google-analytics.js"),
                              tags$style(HTML("a { font-weight: bold; } .shiny-output-error-validation { color: red; } .shiny-progress .progress { background-color: #ff00ff; }"))),
                    titlePanel('What is Your Voice Gender?'),
                    div(style='margin: 30px 0 0 0;'),
