@@ -1,11 +1,9 @@
 $(document).ready(function() {
-    /*$('#btnUrl').click(function() {
-        $('#result1').hide();
-        $('#result2').show();
+    $('#btnUrl').click(function() {
+    	ga('send', 'event', 'btnUrl', 'click', $('#url').val());
     });
 
     $('#file1').click(function() {
-        $('#result1').show();
-        $('#result2').hide();       
-    });*/
+    	ga('send', 'event', 'file1', 'click');
+    });
 });
