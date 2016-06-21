@@ -43,7 +43,9 @@ httpHandler = function(req) {
 shiny:::handlerManager$addHandler(shiny:::routeHandler("/json", httpHandler) , "gendervoice")
 
 shinyServer(function(input, output, session) {
-  output$content1 <- eventReactive(input$file1, ignoreNULL = T, {
+  v <- reactiveValues(data = NULL)
+  
+  observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, it will be a data frame with 'name',
     # 'size', 'type', and 'datapath' columns. The 'datapath'
@@ -52,46 +54,52 @@ shinyServer(function(input, output, session) {
     content <- ''
     inFile <- input$file1
 
-    validate(need(grepl('.wav', tolower(inFile$name)), 'Please select a .WAV file to upload'))
-
-    if (!is.null(inFile)) {
+    if (grepl('.wav', tolower(inFile$name)) != TRUE) {
+      content <- '<div class="shiny-output-error-validation">Please select a .WAV file to upload.</div>'
+    }
+    else if (!is.null(inFile)) {
       disable('btnUrl')
       disable('url')
       disable('file1')
 
-      content <- processFile(inFile, input$model)
+      withProgress(message='Analyzing voice', value=0, {
+        content <- processFile(inFile, input$model)
+      })
     }
 
     enable('btnUrl')
     enable('url')
     enable('file1')
 
-    HTML(content)
+    v$data <- content
   })
 
-  output$content2 <- eventReactive(input$btnUrl, {
+  observeEvent(input$btnUrl, {
     content <- ''
     url <- input$url
 
-    validate(need(url != '' && (grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))), 'Please enter a url to vocaroo or clyp.it.'))
-    
     disable('btnUrl')
     disable('url')
     disable('file1')
 
-    if (url != '') {
-      content <- processUrl(url, input$model)
+    if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
+      withProgress(message='Analyzing voice', value=0, {
+        content <- processUrl(url, input$model)
+      })
     }
-
+    else {
+      content <- '<div class="shiny-output-error-validation">Please enter a url to vocaroo or clyp.it.</div>'
+    }
+    
     enable('btnUrl')
     enable('url')
     enable('file1')
 
-    HTML(content)
+    v$data <- content
   })
   
-  eventReactive(input$btnRefresh, {
-    input$file1 <- NULL
+  output$content <- eventReactive(v$data, {
+    HTML(v$data)
   })
 })
 
@@ -194,7 +202,7 @@ processUrl <- function(url, model) {
       content <- paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)')
     }
     else {
-      content <- 'Error converting mp3 to wav.'
+      content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>. Your mp3 url is <a href="', mp3, '">', mp3, '</a></div>')
     }
     
     # Delete temp file.
