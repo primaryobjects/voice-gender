@@ -35,10 +35,10 @@ shinyUI(fluidPage(
                              div(style='margin: 20px 0 0 0;'),
                              
                              h4('Voice Tips and Tricks'),
+                             p('- Pitch, combined with intonation (the rise and fall of the voice in speaking), are important factors in classifying male versus female.'),
                              p('- Male classified voices tend to be low and within a narrow range of pitch (ie., relatively monotone).'),
                              p('- Female classified voices tend to be higher in pitch and fluctuate frequency to a much greater degree.'),
                              p('- Female classified voices often rise in frequency at the end of a sentence, as if asking a question.'),
-                             p('- Pitch, combined with intonation (the rise and fall of the voice in speaking), seem to be important factors in classifying male versus female.'),
                              div(style='margin: 20px 0 0 0;'),
                              
                              h4('How does it work?'),

@@ -1,6 +1,6 @@
 #packages <- c('shiny', 'shinyjs', 'RJSONIO', 'RCurl', 'warbleR', 'tuneR', 'seewave', 'gbm')
 #if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-  #install.packages(setdiff(packages, rownames(installed.packages())))  
+#install.packages(setdiff(packages, rownames(installed.packages())))  
 #}
 
 library(shiny)
@@ -32,7 +32,7 @@ httpHandler = function(req) {
     #  200, 'text/plain', buf
     #)
   }  
-
+  
   message = list(value = "hello")
   
   return(list(status = 200L,
@@ -53,7 +53,7 @@ shinyServer(function(input, output, session) {
     # be found.
     content <- ''
     inFile <- input$file1
-
+    
     if (grepl('.wav', tolower(inFile$name)) != TRUE) {
       content <- '<div class="shiny-output-error-validation">Please select a .WAV file to upload.</div>'
     }
@@ -61,29 +61,29 @@ shinyServer(function(input, output, session) {
       disable('btnUrl')
       disable('url')
       disable('file1')
-
-      withProgress(message='Analyzing voice', value=0, {
+      
+      withProgress(message='Please wait ..', value=0, {
         content <- processFile(inFile, input$model)
       })
     }
-
+    
     enable('btnUrl')
     enable('url')
     enable('file1')
-
+    
     v$data <- content
   })
-
+  
   observeEvent(input$btnUrl, {
     content <- ''
     url <- input$url
-
+    
     disable('btnUrl')
     disable('url')
     disable('file1')
-
+    
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
-      withProgress(message='Analyzing voice', value=0, {
+      withProgress(message='Please wait ..', value=0, {
         content <- processUrl(url, input$model)
       })
     }
@@ -94,7 +94,7 @@ shinyServer(function(input, output, session) {
     enable('btnUrl')
     enable('url')
     enable('file1')
-
+    
     v$data <- content
   })
   
@@ -114,14 +114,18 @@ processFile <- function(inFile, model) {
   # Create directory.
   dir.create(path)
   
+  incProgress(0.1, message = 'Uploading clip ..')
+  
   # Copy the temp file to our local folder.
   file.copy(inFile$datapath, filePath)
   
-  content1 <- gender(filePath, 1)
-  content2 <- gender(filePath, 2, content1$data)
-  content3 <- gender(filePath, 3, content1$data)
-  content4 <- gender(filePath, 4, content1$data)
-  content5 <- gender(filePath, 5, content1$data)
+  # Process.
+  result <- process(filePath)
+  content1 <- result$content1
+  content2 <- result$content2
+  content3 <- result$content3
+  content4 <- result$content4
+  content5 <- result$content5
   
   unlink(path, recursive = T)
   
@@ -138,15 +142,18 @@ processUrl <- function(url, model) {
     url <- paste0('http://vocaroo.com/media_command.php?media=', id, '&command=download_wav')
     print(paste('Downloading', url, sep=' '))
     
+    incProgress(0.1, message = 'Downloading clip ..')
+    
     # Download wav file.
     download.file(url, fileName)
     
     # Process.        
-    content1 <- gender(fileName, 1)
-    content2 <- gender(fileName, 2, content1$data)
-    content3 <- gender(fileName, 3, content1$data)
-    content4 <- gender(fileName, 4, content1$data)
-    content5 <- gender(fileName, 5, content1$data)
+    result <- process(fileName)
+    content1 <- result$content1
+    content2 <- result$content2
+    content3 <- result$content3
+    content4 <- result$content4
+    content5 <- result$content5
     
     # Delete temp file.
     file.remove(fileName)
@@ -164,7 +171,8 @@ processUrl <- function(url, model) {
     mp3 <- data$Mp3Url
     
     # Create a unique filename.
-    mp3FilePath <- paste0('./temp', sample(1:100000, 1), '/temp', sample(1:100000, 1), '.mp3')
+    r <- sample(1:100000, 1)
+    mp3FilePath <- paste0('./temp', r, '/temp', r, '.mp3')
     wavFilePath <- gsub('.mp3', '.wav', mp3FilePath)
     
     currentPath <- getwd()
@@ -173,6 +181,8 @@ processUrl <- function(url, model) {
     
     # Create directory.
     dir.create(path)
+    
+    incProgress(0.1, message = 'Downloading clip ..')
     
     # Download mp3 file.
     download.file(mp3, mp3FilePath)
@@ -192,13 +202,14 @@ processUrl <- function(url, model) {
     setwd(currentPath)
     
     if (file.exists(wavFilePath)) {
-      # Process.        
-      content1 <- gender(wavFilePath, 1)
-      content2 <- gender(wavFilePath, 2, content1$data)
-      content3 <- gender(wavFilePath, 3, content1$data)
-      content4 <- gender(wavFilePath, 4, content1$data)
-      content5 <- gender(wavFilePath, 5, content1$data)
-
+      # Process.
+      result <- process(wavFilePath)
+      content1 <- result$content1
+      content2 <- result$content2
+      content3 <- result$content3
+      content4 <- result$content4
+      content5 <- result$content5
+      
       content <- paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)')
     }
     else {
@@ -210,6 +221,21 @@ processUrl <- function(url, model) {
   }
   
   content
+}
+
+process <- function(path) {
+  incProgress(0.2, message = 'Processing voice ..')
+  content1 <- gender(path, 1)
+  incProgress(0.3, message = 'Analyzing voice 1/4 ..')
+  content2 <- gender(path, 2, content1$data)
+  incProgress(0.4, message = 'Analyzing voice 2/4 ..')
+  content3 <- gender(path, 3, content1$data)
+  incProgress(0.5, message = 'Analyzing voice 3/4 ..')
+  content4 <- gender(path, 4, content1$data)
+  incProgress(0.6, message = 'Analyzing voice 4/4 ..')
+  content5 <- gender(path, 5, content1$data)
+  
+  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5)
 }
 
 colorize <- function(tag) {
