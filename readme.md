@@ -93,7 +93,7 @@ The following decision tree, produced by the CART model, provides a high-level o
 
 ## Copyright
 
-Copyright (c) 2015 Kory Becker http://primaryobjects.com/kory-becker
+Copyright (c) 2016 Kory Becker http://primaryobjects.com/kory-becker
 
 ## Author
 
