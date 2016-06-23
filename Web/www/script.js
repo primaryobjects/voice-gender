@@ -1,9 +1,13 @@
 $(document).ready(function() {
     $('#btnUrl').click(function() {
-    	ga('send', 'event', 'btnUrl', 'click', $('#url').val());
+        if (ga) {
+            ga('send', 'event', 'btnUrl', 'click', $('#url').val());
+        }
     });
 
     $('#file1').click(function() {
-    	ga('send', 'event', 'file1', 'click');
+        if (ga) {
+            ga('send', 'event', 'file1', 'click');
+        }
     });
 });
