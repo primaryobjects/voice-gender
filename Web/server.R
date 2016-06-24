@@ -224,16 +224,32 @@ processUrl <- function(url, model) {
 }
 
 process <- function(path) {
-  incProgress(0.2, message = 'Processing voice ..')
-  content1 <- gender(path, 1)
-  incProgress(0.3, message = 'Analyzing voice 1/4 ..')
-  content2 <- gender(path, 2, content1$data)
-  incProgress(0.4, message = 'Analyzing voice 2/4 ..')
-  content3 <- gender(path, 3, content1$data)
-  incProgress(0.5, message = 'Analyzing voice 3/4 ..')
-  content4 <- gender(path, 4, content1$data)
-  incProgress(0.6, message = 'Analyzing voice 4/4 ..')
-  content5 <- gender(path, 5, content1$data)
+  content1 <- list(label = 'Sorry, an error occurred.', prob = 0, data = NULL)
+  content2 <- list(label = '', prob = 0, data = NULL)
+  content3 <- list(label = '', prob = 0, data = NULL)
+  content4 <- list(label = '', prob = 0, data = NULL)
+  content5 <- list(label = '', prob = 0, data = NULL)
+
+  tryCatch({
+    incProgress(0.2, message = 'Processing voice ..')
+    content1 <- gender(path, 1)
+    incProgress(0.3, message = 'Analyzing voice 1/4 ..')
+    content2 <- gender(path, 2, content1$data)
+    incProgress(0.4, message = 'Analyzing voice 2/4 ..')
+    content3 <- gender(path, 3, content1$data)
+    incProgress(0.5, message = 'Analyzing voice 3/4 ..')
+    content4 <- gender(path, 4, content1$data)
+    incProgress(0.6, message = 'Analyzing voice 4/4 ..')
+    content5 <- gender(path, 5, content1$data)
+  }, warning = function(e) {
+    if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
+      restart(e)
+    }
+  }, error = function(e) {
+    if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
+      restart(e)
+    }
+  })
   
   list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5)
 }
@@ -247,6 +263,13 @@ colorize <- function(tag) {
   else if (tag == 'male') {
     result <- paste0("<span style='color: #0066ff;'>", tag, "</span>")
   }
+  else if (grepl('error', tag)) {
+    result <- paste0("<span style='color: #ff0000;'>", tag, "</span>")
+  }
   
   result
+}
+
+restart <- function(e) {
+  system('bash ~/app-root/repo/R/restart.sh', wait = F)
 }
