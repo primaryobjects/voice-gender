@@ -271,5 +271,5 @@ colorize <- function(tag) {
 }
 
 restart <- function(e) {
-  system('bash ~/app-root/repo/R/restart.sh', wait = F)
+  system('touch ~/app-root/repo/R/restart.txt')
 }
