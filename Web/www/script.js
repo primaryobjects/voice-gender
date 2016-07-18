@@ -17,6 +17,7 @@ $(document).ready(function() {
                 // Start recording from the microphone.
                 $('#btnPlay').prop('disabled', true);
                 $('#btnUrl').prop('disabled', true);
+                $('#btnDownload').prop('disabled', true);
                 $('#url').prop('disabled', true);
                 $('#file1').prop('disabled', true);
 
@@ -28,10 +29,14 @@ $(document).ready(function() {
                 // Stop recording and post the WAV to the server as base64 encoded data.
                 $('#btnPlay').prop('disabled', false);
                 $('#btnUrl').prop('disabled', false);
+                $('#btnDownload').prop('disabled', false);
                 $('#url').prop('disabled', false);
                 $('#file1').prop('disabled', false);
 
                 $('.fa-stop').removeClass('fa-stop').addClass('fa-microphone').css('color', 'black');
+
+                // Create a download link.
+                $('#downloadLink').attr('href', URL.createObjectURL(audio)).attr('download', new Date().toISOString() + '.wav');
 
                 // Encode the data and post to server.
                 var reader = new FileReader();
@@ -65,6 +70,7 @@ $(document).ready(function() {
 
     // Hide the play button initially. Hide hidden form fields.
     $('#btnPlay').prop('disabled', true);
+    $('#btnDownload').prop('disabled', true);
     $('#audio').hide();
     $('#btnProcessRecording').hide();
 });

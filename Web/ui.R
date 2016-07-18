@@ -27,6 +27,9 @@ shinyUI(fluidPage(
                                    br(),
                                    actionButton('btnRecord', '', class='btn', title='Record from Microphone', icon=icon('microphone')),
                                    actionButton('btnPlay', '', class='btn', title='Play', icon=icon('play')),
+                                   a(id='downloadLink', href='',
+                                    actionButton('btnDownload', '', class='btn', title='Download', icon=icon('download'))
+                                   ),
                                    textInput('audio', NULL, width = '0%'),
                                    actionButton('btnProcessRecording', ''),
                                    hr(),
