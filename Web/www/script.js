@@ -13,6 +13,8 @@ $(document).ready(function() {
 
     $('#btnRecord').click(function() {
         if (!AudioManager.isRecording) {
+        	ga('send', 'event', 'btnRecord', 'start');
+
             AudioManager.start(function() {
                 // Start recording from the microphone.
                 $('#btnPlay').prop('disabled', true);
@@ -25,6 +27,8 @@ $(document).ready(function() {
             });
         }
         else {
+        	ga('send', 'event', 'btnRecord', 'stop');
+
             AudioManager.stop(function(audio) {
                 // Stop recording and post the WAV to the server as base64 encoded data.
                 $('#btnPlay').prop('disabled', false);
@@ -55,6 +59,8 @@ $(document).ready(function() {
 
     $('#btnPlay').click(function() {
         if (!AudioManager.media) {
+        	ga('send', 'event', 'btnPlay', 'start');
+
             // Play the recorded data.
             $('.fa-play').removeClass('fa-play').addClass('fa-stop').css('color', '#00dd00');
             AudioManager.play(function() {
@@ -63,6 +69,8 @@ $(document).ready(function() {
             });
         }
         else {
+        	ga('send', 'event', 'btnPlay', 'stop');
+
             // If the user clicks stop, change the icon.
             stopPlay();
         }
