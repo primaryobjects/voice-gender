@@ -18,11 +18,11 @@ var AudioManager = {
 
               AudioManager.callback = callback;
             } catch (e) {
-              alert('No web audio support in this browser!');
+              alert('No web audio or microphone support in this browser!');
             }
             
             navigator.getUserMedia({audio: true}, AudioManager.startUserMedia, function(e) {
-              console.log('No live audio input: ' + e);
+              alert('Check web browser microphone settings. No audio support or microphone access is blocked.');
             });
         }
         else {
