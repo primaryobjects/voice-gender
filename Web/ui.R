@@ -11,24 +11,35 @@ shinyUI(fluidPage(
   conditionalPanel(condition='!output.json',
                    tags$head(tags$script(src = "script.js"),
                    			 tags$script(src = "google-analytics.js"),
+                   			 tags$script(src = "audioManager.js"),
+                   			 tags$script(src = "recorder.js"),
                              tags$style(HTML("a { font-weight: bold; } .shiny-output-error-validation { color: red; } .shiny-progress .progress { background-color: #ff00ff; }"))),
                    titlePanel('What is Your Voice Gender?'),
                    div(style='margin: 30px 0 0 0;'),
                    mainPanel(width = '100%',
                              useShinyjs(),
-                             h4(id='main', 'Upload a .WAV file of your voice or enter a url from ', a(href='http://vocaroo.com', target='_blank', 'vocaroo.com'), 'or ', a(href='http://clyp.it', target='_blank', 'clyp.it'), ' to detect its gender.'),
+                             h4(id='main', 'Record, or upload a .WAV file of your voice, or enter a url from ', a(href='http://vocaroo.com', target='_blank', 'vocaroo.com'), 'or ', a(href='http://clyp.it', target='_blank', 'clyp.it'), ' to detect its gender.'),
                              div(style='margin: 20px 0 0 0;'),
                              
                              inputPanel(
-                               div(id='uploadDiv', class='', style='height: 120px; border-right: 1px solid #ccc;',
-                                   fileInput('file1', 'Choose WAV File', accept = c('audio/wav'), width = '100%')
+                               div(id='uploadDiv', class='', style='height: 160px; border-right: 1px solid #ccc;',
+                                   strong('Record Audio'),
+                                   br(),
+                                   actionButton('btnRecord', '', class='btn', title='Record from Microphone', icon=icon('microphone')),
+                                   actionButton('btnPlay', '', class='btn', title='Play', icon=icon('play')),
+                                   textInput('audio', NULL, width = '0%'),
+                                   actionButton('btnProcessRecording', ''),
+                                   hr(),
+                                   fileInput('file1', 'Upload WAV File', accept = c('audio/wav'), width = '100%')
                                ),
                                div(id='urlDiv', class='',
                                    strong('Url (vocaroo or clyp.it)'),
                                    textInput('url', NULL, width = '100%'),
-                                   actionButton('btnUrl', 'Load Url', class='btn-primary', icon=icon('cloud'))
-                               ),
-                               div('Please be patient after uploading or clicking submit.')
+                                   actionButton('btnUrl', 'Load Url', class='btn-primary', icon=icon('cloud')),
+                                   br(),
+                                   br(),
+                                   div('Please be patient after uploading or clicking submit.')
+                               )
                              ),
                              
                              div(style='margin: 20px 0 0 0;'),

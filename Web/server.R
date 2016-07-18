@@ -44,7 +44,7 @@ shiny:::handlerManager$addHandler(shiny:::routeHandler("/json", httpHandler) , "
 
 shinyServer(function(input, output, session) {
   v <- reactiveValues(data = NULL)
-  
+
   observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, it will be a data frame with 'name',
@@ -95,6 +95,31 @@ shinyServer(function(input, output, session) {
     enable('url')
     enable('file1')
     
+    v$data <- content
+  })
+  
+  observeEvent(input$btnProcessRecording, {
+    # Decode wav file.
+    audio <- input$audio
+    audio <- gsub('data:audio/wav;base64,', '', audio)
+    audio <- gsub(' ', '+', audio)
+    audio <- base64Decode(audio, mode = 'raw')
+    
+    # Save to file.
+    inFile <- list()
+    inFile$datapath <- paste0('temp', sample(1:100000, 1), '.wav')
+    inFile$file <- file(inFile$datapath, 'wb')
+    writeBin(audio, inFile$file)
+    close(inFile$file)
+    
+    print(inFile$datapath)
+    
+    # Process file.
+    withProgress(message='Please wait ..', value=0, {
+      content <- processFile(inFile)
+      unlink(inFile$datapath)
+    })
+
     v$data <- content
   })
   
@@ -242,10 +267,12 @@ process <- function(path) {
     incProgress(0.6, message = 'Analyzing voice 4/4 ..')
     content5 <- gender(path, 5, content1$data)
   }, warning = function(e) {
+    print(e)
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
     }
   }, error = function(e) {
+    print(e)
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
     }
