@@ -1,4 +1,9 @@
 $(document).ready(function() {
+    // Force https for Chrome requirement for getUserMedia().
+    if (window.location.protocol != "https:") {
+        window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
+    }
+
     $('#btnUrl').click(function() {
         if (typeof(ga) != 'undefined') {
             ga('send', 'event', 'btnUrl', 'click', $('#url').val());
