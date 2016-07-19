@@ -1,6 +1,6 @@
 $(document).ready(function() {
     // Force https for Chrome requirement for getUserMedia().
-    if (window.location.protocol != "https:") {
+    if (window.location.hostname != '127.0.0.1' && window.location.protocol != "https:") {
         window.location.href = "https:" + window.location.href.substring(window.location.protocol.length);
     }
 
