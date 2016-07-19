@@ -86,7 +86,7 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
     songspec <- seewave::spec(r, f = r@samp.rate, plot = FALSE)
     
     # Ensure channels match, in case of null channel 2.
-    if (is.matrix(songspec) && length(is.na(songspec[,2])) == nrow(songspec)) {
+    if (is.matrix(songspec) && any(is.na(songspec[,2]))) {
       print('Warning: Duplicating channel 1 on channel 2.')
       songspec[,2] <- songspec[,1]
     }
