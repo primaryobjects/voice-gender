@@ -74,14 +74,23 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
   
   if(parallel == 1) cat("Measuring acoustic parameters:")
   x <- as.data.frame(lapp(1:length(start), function(i) { 
-    r <- tuneR::readWave(file.path(getwd(), sound.files[i]), from = start[i], to = end[i], units = "seconds") 
-    
+    suppressWarnings(
+      r <- readWave(file.path(getwd(), sound.files[i]), from = start[i], to = end[i], units = "seconds") 
+    )
+
     b<- bp #in case bp its higher than can be due to sampling rate
     if(b[2] > ceiling(r@samp.rate/2000) - 1) b[2] <- ceiling(r@samp.rate/2000) - 1 
     
     
     #frequency spectrum analysis
     songspec <- seewave::spec(r, f = r@samp.rate, plot = FALSE)
+    
+    # Ensure channels match, in case of null channel 2.
+    if (is.matrix(songspec) && length(is.na(songspec[,2])) == nrow(songspec)) {
+      print('Warning: Duplicating channel 1 on channel 2.')
+      songspec[,2] <- songspec[,1]
+    }
+    
     analysis <- seewave::specprop(songspec, f = r@samp.rate, flim = b, plot = FALSE)
     
     #save parameters
@@ -104,9 +113,17 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
     #Fundamental frequency parameters
     ff <- seewave::fund(r, f = r@samp.rate, ovlp = 50, threshold = threshold, 
                         fmax = b[2] * 1000, plot = FALSE, wl = wl)[, 2]
-    meanfun<-mean(ff, na.rm = T)
-    minfun<-min(ff, na.rm = T)
-    maxfun<-max(ff, na.rm = T)
+    if (all(is.na(ff))) {
+      print('Warning: fund() returned all NAs.')
+      meanfun<-0
+      minfun<-0
+      maxfun<-0
+    }
+    else {
+      meanfun<-mean(ff, na.rm = T)
+      minfun<-min(ff, na.rm = T)
+      maxfun<-max(ff, na.rm = T)
+    }
     
     #Dominant frecuency parameters
     y <- seewave::dfreq(r, f = r@samp.rate, wl = wl, ovlp = 0, plot = F, threshold = threshold, bandpass = b * 1000, fftw = TRUE)[, 2]
