@@ -54,6 +54,8 @@ shinyServer(function(input, output, session) {
     content <- ''
     inFile <- input$file1
     
+    hide('graph1')
+    
     if (grepl('.wav', tolower(inFile$name)) != TRUE) {
       content <- '<div class="shiny-output-error-validation">Please select a .WAV file to upload.</div>'
     }
@@ -63,7 +65,13 @@ shinyServer(function(input, output, session) {
       disable('file1')
       
       withProgress(message='Please wait ..', value=0, {
-        content <- processFile(inFile, input$model)
+        result <- processFile(inFile, input$model)
+        
+        content <- result$content
+        if (!is.null(result$graph1)) {
+          output$graph1 <- result$graph1
+          runjs("document.getElementById('graph1').style.display = 'block'")
+        }
       })
     }
     
@@ -81,10 +89,17 @@ shinyServer(function(input, output, session) {
     disable('btnUrl')
     disable('url')
     disable('file1')
+    hide('graph1')
     
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
       withProgress(message='Please wait ..', value=0, {
-        content <- processUrl(url, input$model)
+        result <- processUrl(url, input$model)
+        
+        content <- result$content
+        if (!is.null(result$graph1)) {
+          output$graph1 <- result$graph1
+          runjs("document.getElementById('graph1').style.display = 'block'")
+        }
       })
     }
     else {
@@ -101,6 +116,8 @@ shinyServer(function(input, output, session) {
   output$content <- eventReactive(v$data, {
     HTML(v$data)
   })
+
+  hide("graph1")
 })
 
 processFile <- function(inFile, model) {
@@ -129,7 +146,7 @@ processFile <- function(inFile, model) {
   
   unlink(path, recursive = T)
   
-  paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)')
+  list(content=paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)'), graph1=result$graph1)
 }
 
 processUrl <- function(url, model) {
@@ -154,6 +171,7 @@ processUrl <- function(url, model) {
     content3 <- result$content3
     content4 <- result$content4
     content5 <- result$content5
+    graph1 <- result$graph1
     
     # Delete temp file.
     file.remove(fileName)
@@ -209,18 +227,20 @@ processUrl <- function(url, model) {
       content3 <- result$content3
       content4 <- result$content4
       content5 <- result$content5
+      graph1 <- result$graph1
       
       content <- paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)')
     }
     else {
       content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
+      graph1 <- NULL
     }
     
     # Delete temp file.
     unlink(path, recursive=T)
   }
   
-  content
+  list(content=content, graph1=graph1)
 }
 
 process <- function(path) {
@@ -229,7 +249,8 @@ process <- function(path) {
   content3 <- list(label = '', prob = 0, data = NULL)
   content4 <- list(label = '', prob = 0, data = NULL)
   content5 <- list(label = '', prob = 0, data = NULL)
-
+  graph1 <- NULL
+  
   tryCatch({
     incProgress(0.2, message = 'Processing voice ..')
     content1 <- gender(path, 1)
@@ -241,6 +262,21 @@ process <- function(path) {
     content4 <- gender(path, 4, content1$data)
     incProgress(0.6, message = 'Analyzing voice 4/4 ..')
     content5 <- gender(path, 5, content1$data)
+    
+    incProgress(0.7, message = 'Building graph 1/2 ..')
+    wav <- readWave(path, to=20, units='seconds')
+    incProgress(0.8, message = 'Building graph 2/2 ..')
+    graph1 <- renderPlot({
+      spectro(wav, ovlp=40, zp=8, scale=FALSE)
+      par(new=TRUE)
+      dfreq(wav, at=seq(0, duration(wav) - 0.1, by=0.1), threshold=6, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
+      par(new=TRUE)
+      #fund(wav, threshold=6, fmax=8000, type="l", col="green", lwd=2, xlab='', xaxt='n', yaxt='n')
+      #par(new=TRUE)
+      res <- autoc(wav, threshold=10, fmin=100, fmax=700, plot=T, type='p', col='black', xlab='', ylab='', xaxt='n', yaxt='n')
+      #legend(0, 8, legend=c('Fundamental frequency', 'Fundamental frequency', 'Dominant frequency'), col=c('green', 'black', 'red'), pch=c(19, 1, 19))
+      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
+    })
   }, warning = function(e) {
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
@@ -251,7 +287,7 @@ process <- function(path) {
     }
   })
   
-  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5)
+  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, graph1=graph1)
 }
 
 colorize <- function(tag) {
