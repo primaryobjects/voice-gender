@@ -54,7 +54,9 @@ shinyServer(function(input, output, session) {
     content <- ''
     inFile <- input$file1
     
+    hide('graphs')
     hide('graph1')
+    hide('graph2')
     
     if (grepl('.wav', tolower(inFile$name)) != TRUE) {
       content <- '<div class="shiny-output-error-validation">Please select a .WAV file to upload.</div>'
@@ -70,7 +72,8 @@ shinyServer(function(input, output, session) {
         content <- result$content
         if (!is.null(result$graph1)) {
           output$graph1 <- result$graph1
-          runjs("document.getElementById('graph1').style.display = 'block'")
+          output$graph2 <- result$graph2
+          runjs("document.getElementById('graphs').style.display = 'block'; document.getElementById('graph1').style.display = 'block'; document.getElementById('graph2').style.display = 'block';")
         }
       })
     }
@@ -89,7 +92,9 @@ shinyServer(function(input, output, session) {
     disable('btnUrl')
     disable('url')
     disable('file1')
+    hide('graphs')
     hide('graph1')
+    hide('graph2')
     
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
       withProgress(message='Please wait ..', value=0, {
@@ -98,7 +103,8 @@ shinyServer(function(input, output, session) {
         content <- result$content
         if (!is.null(result$graph1)) {
           output$graph1 <- result$graph1
-          runjs("document.getElementById('graph1').style.display = 'block'")
+          output$graph2 <- result$graph2
+          runjs("document.getElementById('graphs').style.display = 'block'; document.getElementById('graph1').style.display = 'block'; document.getElementById('graph2').style.display = 'block';")
         }
       })
     }
@@ -117,7 +123,9 @@ shinyServer(function(input, output, session) {
     HTML(v$data)
   })
 
+  hide("graphs")
   hide("graph1")
+  hide("graph2")
 })
 
 processFile <- function(inFile, model) {
@@ -146,7 +154,7 @@ processFile <- function(inFile, model) {
   
   unlink(path, recursive = T)
   
-  list(content=paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)'), graph1=result$graph1)
+  list(content=paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)'), graph1=result$graph1, graph2=result$graph2)
 }
 
 processUrl <- function(url, model) {
@@ -172,6 +180,7 @@ processUrl <- function(url, model) {
     content4 <- result$content4
     content5 <- result$content5
     graph1 <- result$graph1
+    graph2 <- result$graph2
     
     # Delete temp file.
     file.remove(fileName)
@@ -228,6 +237,7 @@ processUrl <- function(url, model) {
       content4 <- result$content4
       content5 <- result$content5
       graph1 <- result$graph1
+      graph2 <- result$graph2
       
       content <- paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)')
     }
@@ -240,7 +250,7 @@ processUrl <- function(url, model) {
     unlink(path, recursive=T)
   }
   
-  list(content=content, graph1=graph1)
+  list(content=content, graph1=graph1, graph2=graph2)
 }
 
 process <- function(path) {
@@ -250,6 +260,7 @@ process <- function(path) {
   content4 <- list(label = '', prob = 0, data = NULL)
   content5 <- list(label = '', prob = 0, data = NULL)
   graph1 <- NULL
+  graph2 <- NULL
   
   tryCatch({
     incProgress(0.2, message = 'Processing voice ..')
@@ -264,9 +275,14 @@ process <- function(path) {
     content5 <- gender(path, 5, content1)
     
     incProgress(0.8, message = 'Building graph 2/2 ..')
+    
+    wl <- 2048
+    ylim <- 280
+    thresh <- 5
+    
     graph1 <- renderPlot({
       #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
-      #content1$wave <- fir(content1$wave, from=0, to=400, output='Wave')
+      #content1$wave <- fir(content1$wave, from=80, to=280, output='Wave')
       
       # spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,0.5))
       # par(new=TRUE)
@@ -291,9 +307,8 @@ process <- function(path) {
       # text(duration(content1$wave) / 2, 0.45, labels = paste('Maximum Frequency = ', maxf, 'hz'))
       
       
-      
-      freqs <- fund(content1$wave, fmax=300, ylim=c(0, 0.3), plot=F)
-      fund(content1$wave, fmax=300, ylim=c(0, 0.3), type='l', col='red')
+      freqs <- fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), threshold=thresh, plot=F, wl=wl)
+      fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), type='l', threshold=thresh, col='red', wl=wl)
       x <- freqs[,1]
       y <- freqs[,2] + 0.01
       labels <- freqs[,2]
@@ -320,6 +335,13 @@ process <- function(path) {
       #legend(0, 8, legend=c('Fundamental frequency', 'Fundamental frequency', 'Dominant frequency'), col=c('green', 'black', 'red'), pch=c(19, 1, 19))
 #      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
     })
+    
+    incProgress(0.9, message = 'Building graph 2/2 ..')
+    graph2 <- renderPlot({
+      spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,ylim/1000), wl=wl)
+      #par(new=TRUE)
+      #dfreq(content1$wave, threshold=thresh, wl=wl, ylim=c(0, ylim/1000), type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
+    })
   }, warning = function(e) {
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
@@ -330,7 +352,7 @@ process <- function(path) {
     }
   })
   
-  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, graph1=graph1)
+  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, graph1=graph1, graph2=graph2)
 }
 
 colorize <- function(tag) {

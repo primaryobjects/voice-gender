@@ -35,8 +35,10 @@ shinyUI(fluidPage(
                              div(id='result', style='font-size: 22px;', htmlOutput('content')),
                              div(style='margin: 20px 0 0 0;'),
                              
-                             div(style='margin: 20px 0 0 0;'),
-                             div(id='graph1div', plotOutput("graph1", width=1000, height=500)),
+                             tabsetPanel(id='graphs',
+                               tabPanel('Frequency Graph', plotOutput("graph1", width=1000, height=500)),
+                               tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500))
+                             ),
                              div(style='margin: 20px 0 0 0;'),
 
                              h4('Voice Tips and Tricks'),
