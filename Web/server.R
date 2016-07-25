@@ -212,10 +212,10 @@ processUrl <- function(url, model) {
     
     # Set directory to read file.
     setwd(path)
-    
-    # Convert mp3 to wav.
+
+    # Convert mp3 to wav (does not always work due to bug with tuner).
     try(mp32wav())
-    
+
     # Restore path.
     setwd(currentPath)
     
@@ -255,25 +255,45 @@ process <- function(path) {
     incProgress(0.2, message = 'Processing voice ..')
     content1 <- gender(path, 1)
     incProgress(0.3, message = 'Analyzing voice 1/4 ..')
-    content2 <- gender(path, 2, content1$data)
+    content2 <- gender(path, 2, content1)
     incProgress(0.4, message = 'Analyzing voice 2/4 ..')
-    content3 <- gender(path, 3, content1$data)
+    content3 <- gender(path, 3, content1)
     incProgress(0.5, message = 'Analyzing voice 3/4 ..')
-    content4 <- gender(path, 4, content1$data)
+    content4 <- gender(path, 4, content1)
     incProgress(0.6, message = 'Analyzing voice 4/4 ..')
-    content5 <- gender(path, 5, content1$data)
+    content5 <- gender(path, 5, content1)
     
-    incProgress(0.7, message = 'Building graph 1/2 ..')
-    wav <- readWave(path, to=20, units='seconds')
     incProgress(0.8, message = 'Building graph 2/2 ..')
     graph1 <- renderPlot({
-      spectro(wav, ovlp=40, zp=8, scale=FALSE)
+      content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
+      
+      spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,0.5))
       par(new=TRUE)
-      dfreq(wav, at=seq(0, duration(wav) - 0.1, by=0.1), threshold=6, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
-      par(new=TRUE)
+
+      freqs <- dfreq(content1$wave, at = seq(0.0, duration(content1$wave), by = 0.5), type = "o", xlim = c(0.0, duration(content1$wave)), ylim=c(0, 0.5), main = "a measure every 10 ms", plot=F)
+      dfreq(content1$wave, at = seq(0.0, duration(content1$wave), by = 0.5), type = "o", xlim = c(0.0, duration(content1$wave)), ylim=c(0, 0.5), main = "a measure every 10 ms")
+      
+      x <- freqs[,1]
+      y <- freqs[,2] + 0.01
+      labels <- freqs[,2]
+      
+      subx <- x[seq(1, length(x), 3)]
+      suby <- y[seq(1, length(y), 3)]
+      sublabels <- paste(labels[seq(1, length(labels), 3)] * 1000, 'hz')
+      text(subx, suby, labels = sublabels)
+      
+      minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
+      meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
+      maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
+      text(duration(content1$wave) / 2, 0.47, labels = paste('Minimum Frequency = ', minf, 'hz'))
+      text(duration(content1$wave) / 2, 0.46, labels = paste('Avgerage Frequency = ', meanf, 'hz'))
+      text(duration(content1$wave) / 2, 0.45, labels = paste('Maximum Frequency = ', maxf, 'hz'))
+      
+      #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), threshold=5, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
+#      par(new=TRUE)
       #fund(wav, threshold=6, fmax=8000, type="l", col="green", lwd=2, xlab='', xaxt='n', yaxt='n')
       #par(new=TRUE)
-      res <- autoc(wav, threshold=10, fmin=100, fmax=700, plot=T, type='p', col='black', xlab='', ylab='', xaxt='n', yaxt='n')
+      res <- autoc(content1$wave, threshold=5, fmin=50, fmax=300, plot=T, type='p', col='black', xlab='', ylab='', xaxt='n', yaxt='n')
       #legend(0, 8, legend=c('Fundamental frequency', 'Fundamental frequency', 'Dominant frequency'), col=c('green', 'black', 'red'), pch=c(19, 1, 19))
       legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
     })

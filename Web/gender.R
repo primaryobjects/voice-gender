@@ -72,6 +72,8 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
   
   options(warn = 0)
   
+  wave <- NULL
+  
   if(parallel == 1) cat("Measuring acoustic parameters:")
   x <- as.data.frame(lapp(1:length(start), function(i) { 
     r <- tuneR::readWave(file.path(getwd(), sound.files[i]), from = start[i], to = end[i], units = "seconds") 
@@ -123,6 +125,8 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
       changes <- append(changes, change)
     }
     if(mindom==maxdom) modindx<-0 else modindx <- mean(changes, na.rm = T)/dfrange
+
+    wave <<- r
     
     #save results
     return(c(duration, meanfreq, sd, median, Q25, Q75, IQR, skew, kurt, sp.ent, sfm, mode, 
@@ -137,7 +141,7 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
   colnames(x)[1:2] <- c("sound.files", "selec")
   rownames(x) <- c(1:nrow(x))
   
-  return(x)
+  return(list(acoustics = x, wave = wave))
 }
 
 processFolder <- function(folderName) {
@@ -160,12 +164,12 @@ processFolder <- function(folderName) {
   setwd(folderName)
   
   # Process files.
-  acoustics <- specan3(data, parallel=1)
+  result <- specan3(data, parallel=1)
   
   # Move back into parent folder.
   setwd('..')
   
-  acoustics
+  result$acoustics
 }
 
 gender <- function(filePath, model = 1, session = NULL) {
@@ -239,13 +243,19 @@ gender <- function(filePath, model = 1, session = NULL) {
   
   if (is.null(session)) {
     # Process files.
-    acoustics <- specan3(data, parallel=1)
+    result <- specan3(data, parallel=1)
+    
+    acoustics <- result$acoustics
     acoustics[,1:3] <- NULL
     acoustics[,'peakf'] <- NULL
+    
+    wave <- result$wave
+
     acoustics <- as.matrix(acoustics)
   }
   else {
-    acoustics <- session
+    acoustics <- session$acoustics
+    wave <- session$wave
   }
   
   # Restore path.
@@ -294,5 +304,5 @@ gender <- function(filePath, model = 1, session = NULL) {
     print(result)
   }
   
-  list(label = result, prob = prob, data = acoustics)
+  list(label = result, prob = prob, acoustics = acoustics, wave = wave)
 }
