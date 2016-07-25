@@ -265,37 +265,60 @@ process <- function(path) {
     
     incProgress(0.8, message = 'Building graph 2/2 ..')
     graph1 <- renderPlot({
-      content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
+      #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
+      #content1$wave <- fir(content1$wave, from=0, to=400, output='Wave')
       
-      spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,0.5))
-      par(new=TRUE)
-
-      freqs <- dfreq(content1$wave, at = seq(0.0, duration(content1$wave), by = 0.5), type = "o", xlim = c(0.0, duration(content1$wave)), ylim=c(0, 0.5), main = "a measure every 10 ms", plot=F)
-      dfreq(content1$wave, at = seq(0.0, duration(content1$wave), by = 0.5), type = "o", xlim = c(0.0, duration(content1$wave)), ylim=c(0, 0.5), main = "a measure every 10 ms")
+      # spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,0.5))
+      # par(new=TRUE)
+      # 
+      # freqs <- dfreq(content1$wave, at = seq(0.0, duration(content1$wave), by = 0.5), type = "o", xlim = c(0.0, duration(content1$wave)), ylim=c(0, 0.5), main = "a measure every 10 ms", plot=F)
+      # dfreq(content1$wave, at = seq(0.0, duration(content1$wave), by = 0.5), type = "o", xlim = c(0.0, duration(content1$wave)), ylim=c(0, 0.5), main = "a measure every 10 ms")
+      # 
+      # x <- freqs[,1]
+      # y <- freqs[,2] + 0.01
+      # labels <- freqs[,2]
+      # 
+      # subx <- x[seq(1, length(x), 3)]
+      # suby <- y[seq(1, length(y), 3)]
+      # sublabels <- paste(labels[seq(1, length(labels), 3)] * 1000, 'hz')
+      # text(subx, suby, labels = sublabels)
+      # 
+      # minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
+      # meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
+      # maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
+      # text(duration(content1$wave) / 2, 0.47, labels = paste('Minimum Frequency = ', minf, 'hz'))
+      # text(duration(content1$wave) / 2, 0.46, labels = paste('Avgerage Frequency = ', meanf, 'hz'))
+      # text(duration(content1$wave) / 2, 0.45, labels = paste('Maximum Frequency = ', maxf, 'hz'))
       
+      
+      
+      freqs <- fund(content1$wave, fmax=300, ylim=c(0, 0.3), plot=F)
+      fund(content1$wave, fmax=300, ylim=c(0, 0.3), type='l', col='red')
       x <- freqs[,1]
       y <- freqs[,2] + 0.01
       labels <- freqs[,2]
       
-      subx <- x[seq(1, length(x), 3)]
-      suby <- y[seq(1, length(y), 3)]
-      sublabels <- paste(labels[seq(1, length(labels), 3)] * 1000, 'hz')
+      subx <- x[seq(1, length(x), 4)]
+      suby <- y[seq(1, length(y), 4)]
+      sublabels <- paste(round(labels[seq(1, length(labels), 4)] * 1000, 0), 'hz')
       text(subx, suby, labels = sublabels)
       
       minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
       meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
       maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
-      text(duration(content1$wave) / 2, 0.47, labels = paste('Minimum Frequency = ', minf, 'hz'))
-      text(duration(content1$wave) / 2, 0.46, labels = paste('Avgerage Frequency = ', meanf, 'hz'))
-      text(duration(content1$wave) / 2, 0.45, labels = paste('Maximum Frequency = ', maxf, 'hz'))
+      text(duration(content1$wave) / 2, 0.05, labels = paste('Minimum Frequency = ', minf, 'hz'))
+      text(duration(content1$wave) / 2, 0.03, labels = paste('Avgerage Frequency = ', meanf, 'hz'), col='darkgreen', cex=1.25)
+      text(duration(content1$wave) / 2, 0.01, labels = paste('Maximum Frequency = ', maxf, 'hz'))
+      
+      
       
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), threshold=5, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
 #      par(new=TRUE)
       #fund(wav, threshold=6, fmax=8000, type="l", col="green", lwd=2, xlab='', xaxt='n', yaxt='n')
       #par(new=TRUE)
-      res <- autoc(content1$wave, threshold=5, fmin=50, fmax=300, plot=T, type='p', col='black', xlab='', ylab='', xaxt='n', yaxt='n')
+#      res <- autoc(content1$wave, threshold=5, fmin=50, fmax=300, plot=T, type='p', col='black', xlab='', ylab='', xaxt='n', yaxt='n')
       #legend(0, 8, legend=c('Fundamental frequency', 'Fundamental frequency', 'Dominant frequency'), col=c('green', 'black', 'red'), pch=c(19, 1, 19))
-      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
+#      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
     })
   }, warning = function(e) {
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
