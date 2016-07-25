@@ -42,6 +42,8 @@ httpHandler = function(req) {
 
 shiny:::handlerManager$addHandler(shiny:::routeHandler("/json", httpHandler) , "gendervoice")
 
+options(shiny.maxRequestSize=2*1024^2)
+
 shinyServer(function(input, output, session) {
   v <- reactiveValues(data = NULL)
   
