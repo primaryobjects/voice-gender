@@ -9,6 +9,8 @@ This project trains a computer program to identify a voice as male or female, ba
 
 The best model achieves an accuracy of 100% on the training set and 89% on the test set.
 
+*Update: By narrowing the frequency range analyzed to 0hz-280hz, the best accuracy is boosted to 100%/99%.*
+
 ## The Dataset
 
 Download the pre-processed [dataset](https://raw.githubusercontent.com/primaryobjects/voice-gender/master/voice.csv) as a CSV file.
@@ -48,6 +50,9 @@ The trained models have achieved the following accuracies (train/test):
 #### XGBoost
 100%/87%
 
+#### XGBoost (Updated with frequency range 0hz-280hz)
+100%/99%
+
 ## Acoustic Properties Measured
 
 The following acoustic properties of each voice are measured:
@@ -80,6 +85,10 @@ The following acoustic properties of each voice are measured:
 The following decision tree, produced by the CART model, provides a high-level overview of important properties of the voice samples that may determine a specific gender classification of male versus female.
 
 ![Screenshot 1](https://raw.githubusercontent.com/primaryobjects/voice-gender/master/images/voice-plot-1.png)
+
+After narrowing the frequency range to 0hz-280hz with a threshold of 15dB, the accuracy is boosted to near perfect, and the following CART model is described. Mean fundamental frequency serves as a powerful indicator of voice gender, with a threshold of 140hz separating male from female classifications.
+
+![Screenshot 2](https://raw.githubusercontent.com/primaryobjects/voice-gender/master/images/voice-plot-2.png)
 
 ## References
 
