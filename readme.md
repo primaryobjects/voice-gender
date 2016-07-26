@@ -9,7 +9,7 @@ This project trains a computer program to identify a voice as male or female, ba
 
 The best model achieves an accuracy of 100% on the training set and 89% on the test set.
 
-**Update: By narrowing the frequency range analyzed to 0hz-280hz (human [vocal range](https://en.wikipedia.org/wiki/Voice_frequency)), the best accuracy is boosted to 100%/99%.**
+**Update: By narrowing the frequency range analyzed to 0hz-280hz ([human vocal range](https://en.wikipedia.org/wiki/Voice_frequency#Fundamental_frequency)), the best accuracy is boosted to 100%/99%.**
 
 ## The Dataset
 
