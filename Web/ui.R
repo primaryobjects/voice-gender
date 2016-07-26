@@ -36,7 +36,8 @@ shinyUI(fluidPage(
                              div(style='margin: 20px 0 0 0;'),
                              
                              tabsetPanel(id='graphs',
-                               tabPanel('Frequency Graph', plotOutput("graph1", width=1000, height=500)),
+                               tabPanel('Summary', tableOutput('summary')),
+                               tabPanel('Frequency', plotOutput("graph1", width=1000, height=500)),
                                tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500))
                              ),
                              div(style='margin: 20px 0 0 0;'),

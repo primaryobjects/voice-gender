@@ -73,6 +73,7 @@ shinyServer(function(input, output, session) {
         
         content <- result$content
         if (!is.null(result$graph1)) {
+          output$summary <- renderTable(result$summary)
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
           runjs("document.getElementById('graphs').style.display = 'block'; document.getElementById('graph1').style.display = 'block'; document.getElementById('graph2').style.display = 'block';")
@@ -104,6 +105,7 @@ shinyServer(function(input, output, session) {
         
         content <- result$content
         if (!is.null(result$graph1)) {
+          output$summary <- renderTable(result$summary)
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
           runjs("document.getElementById('graphs').style.display = 'block'; document.getElementById('graph1').style.display = 'block'; document.getElementById('graph2').style.display = 'block';")
@@ -156,7 +158,7 @@ processFile <- function(inFile, model) {
   
   unlink(path, recursive = T)
   
-  list(content=paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)'), graph1=result$graph1, graph2=result$graph2)
+  list(content=paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)'), summary=result$summary, graph1=result$graph1, graph2=result$graph2)
 }
 
 processUrl <- function(url, model) {
@@ -181,6 +183,7 @@ processUrl <- function(url, model) {
     content3 <- result$content3
     content4 <- result$content4
     content5 <- result$content5
+    summary <- result$summary
     graph1 <- result$graph1
     graph2 <- result$graph2
     
@@ -238,6 +241,7 @@ processUrl <- function(url, model) {
       content3 <- result$content3
       content4 <- result$content4
       content5 <- result$content5
+      summary <- result$summary
       graph1 <- result$graph1
       graph2 <- result$graph2
       
@@ -252,7 +256,7 @@ processUrl <- function(url, model) {
     unlink(path, recursive=T)
   }
   
-  list(content=content, graph1=graph1, graph2=graph2)
+  list(content=content, summary=summary, graph1=graph1, graph2=graph2)
 }
 
 process <- function(path) {
@@ -276,11 +280,18 @@ process <- function(path) {
     incProgress(0.6, message = 'Analyzing voice 4/4 ..')
     content5 <- gender(path, 5, content1)
     
-    incProgress(0.8, message = 'Building graph 2/2 ..')
+    incProgress(0.8, message = 'Building graph 1/2 ..')
     
     wl <- 2048
     ylim <- 280
     thresh <- 5
+    
+    freqs <- fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), threshold=thresh, plot=F, wl=wl)
+    minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
+    meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
+    maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
+
+    summary <- data.frame(Duration=paste(duration(content1$wave), 's'), Sampling.Rate=content1$wave@samp.rate, Average.Frequency=paste(meanf, 'hz'))
     
     graph1 <- renderPlot({
       #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
@@ -307,9 +318,7 @@ process <- function(path) {
       # text(duration(content1$wave) / 2, 0.47, labels = paste('Minimum Frequency = ', minf, 'hz'))
       # text(duration(content1$wave) / 2, 0.46, labels = paste('Avgerage Frequency = ', meanf, 'hz'))
       # text(duration(content1$wave) / 2, 0.45, labels = paste('Maximum Frequency = ', maxf, 'hz'))
-      
-      
-      freqs <- fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), threshold=thresh, plot=F, wl=wl)
+
       fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), type='l', threshold=thresh, col='red', wl=wl)
       x <- freqs[,1]
       y <- freqs[,2] + 0.01
@@ -320,9 +329,6 @@ process <- function(path) {
       sublabels <- paste(round(labels[seq(1, length(labels), 4)] * 1000, 0), 'hz')
       text(subx, suby, labels = sublabels)
       
-      minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
-      meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
-      maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
       legend(0.5, 0.05, legend=c(paste('Min frequency', minf, 'hz'), paste('Average frequency', meanf, 'hz'), paste('Max frequency', maxf, 'hz')), text.col=c('black', 'darkgreen', 'black'), pch=c(19, 19, 19))
 
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), threshold=5, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
@@ -350,7 +356,7 @@ process <- function(path) {
     }
   })
   
-  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, graph1=graph1, graph2=graph2)
+  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, summary=summary, graph1=graph1, graph2=graph2)
 }
 
 colorize <- function(tag) {
