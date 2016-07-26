@@ -139,7 +139,15 @@ shinyServer(function(input, output, session) {
     
     # Process file.
     withProgress(message='Please wait ..', value=0, {
-      content <- processFile(inFile)
+      result <- processFile(inFile)
+      
+      content <- result$content
+      if (!is.null(result$graph1)) {
+        output$graph1 <- result$graph1
+        output$graph2 <- result$graph2
+        runjs("document.getElementById('graphs').style.display = 'block'; document.getElementById('graph1').style.display = 'block'; document.getElementById('graph2').style.display = 'block';")
+      }
+      
       unlink(inFile$datapath)
     })
 
