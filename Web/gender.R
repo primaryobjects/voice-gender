@@ -10,7 +10,7 @@ library(xgboost)
 library(randomForest)
 library(e1071)
 
-specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
+specan3 <- function(X, bp = c(0,22), wl = 2048, threshold = 5, parallel = 1){
   # To use parallel processing: library(devtools), install_github('nathanvan/parallelsugar')
   if(class(X) == "data.frame") {if(all(c("sound.files", "selec", 
                                          "start", "end") %in% colnames(X))) 
@@ -72,6 +72,8 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
   
   options(warn = 0)
   
+  wave <- NULL
+  
   if(parallel == 1) cat("Measuring acoustic parameters:")
   x <- as.data.frame(lapp(1:length(start), function(i) { 
     suppressWarnings(
@@ -84,14 +86,14 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
     
     #frequency spectrum analysis
     songspec <- seewave::spec(r, f = r@samp.rate, plot = FALSE)
-    
+
     # Ensure channels match, in case of null channel 2.
     if (is.matrix(songspec) && any(is.na(songspec[,2]))) {
       print('Warning: Duplicating channel 1 on channel 2.')
       songspec[,2] <- songspec[,1]
     }
-    
-    analysis <- seewave::specprop(songspec, f = r@samp.rate, flim = b, plot = FALSE)
+
+    analysis <- seewave::specprop(songspec, f = r@samp.rate, flim = c(0, 280/1000), plot = FALSE)
     
     #save parameters
     meanfreq <- analysis$mean/1000
@@ -112,7 +114,7 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
     
     #Fundamental frequency parameters
     ff <- seewave::fund(r, f = r@samp.rate, ovlp = 50, threshold = threshold, 
-                        fmax = b[2] * 1000, plot = FALSE, wl = wl)[, 2]
+                        fmax = 280, ylim=c(0, 280/1000), plot = FALSE, wl = wl)[, 2]
     if (all(is.na(ff))) {
       print('Warning: fund() returned all NAs.')
       meanfun<-0
@@ -126,7 +128,7 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
     }
     
     #Dominant frecuency parameters
-    y <- seewave::dfreq(r, f = r@samp.rate, wl = wl, ovlp = 0, plot = F, threshold = threshold, bandpass = b * 1000, fftw = TRUE)[, 2]
+    y <- seewave::dfreq(r, f = r@samp.rate, wl = wl, ylim=c(0, 280/1000), ovlp = 0, plot = F, threshold = threshold, bandpass = b * 1000, fftw = TRUE)[, 2]
     meandom <- mean(y, na.rm = TRUE)
     mindom <- min(y, na.rm = TRUE)
     maxdom <- max(y, na.rm = TRUE)
@@ -141,6 +143,8 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
     }
     if(mindom==maxdom) modindx<-0 else modindx <- mean(changes, na.rm = T)/dfrange
     
+    wave <<- r
+    
     #save results
     return(c(duration, meanfreq, sd, median, Q25, Q75, IQR, skew, kurt, sp.ent, sfm, mode, 
              centroid, peakf, meanfun, minfun, maxfun, meandom, mindom, maxdom, dfrange, modindx))
@@ -154,7 +158,7 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
   colnames(x)[1:2] <- c("sound.files", "selec")
   rownames(x) <- c(1:nrow(x))
   
-  return(x)
+  return(list(acoustics = x, wave = wave))
 }
 
 processFolder <- function(folderName) {
@@ -177,12 +181,12 @@ processFolder <- function(folderName) {
   setwd(folderName)
   
   # Process files.
-  acoustics <- specan3(data, parallel=1)
+  result <- specan3(data, parallel=1)
   
   # Move back into parent folder.
   setwd('..')
   
-  acoustics
+  result$acoustics
 }
 
 gender <- function(filePath, model = 1, session = NULL) {
@@ -256,13 +260,19 @@ gender <- function(filePath, model = 1, session = NULL) {
   
   if (is.null(session)) {
     # Process files.
-    acoustics <- specan3(data, parallel=1)
+    result <- specan3(data, parallel=1)
+    
+    acoustics <- result$acoustics
     acoustics[,1:3] <- NULL
     acoustics[,'peakf'] <- NULL
+    
+    wave <- result$wave
+
     acoustics <- as.matrix(acoustics)
   }
   else {
-    acoustics <- session
+    acoustics <- session$acoustics
+    wave <- session$wave
   }
   
   # Restore path.
@@ -311,5 +321,5 @@ gender <- function(filePath, model = 1, session = NULL) {
     print(result)
   }
   
-  list(label = result, prob = prob, data = acoustics)
+  list(label = result, prob = prob, acoustics = acoustics, wave = wave)
 }

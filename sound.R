@@ -13,7 +13,7 @@ library(mice)
 library(xgboost)
 library(e1071)
 
-specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
+specan3 <- function(X, bp = c(0,22), wl = 2048, threshold = 5, parallel = 1){
   # To use parallel processing: library(devtools), install_github('nathanvan/parallelsugar')
   if(class(X) == "data.frame") {if(all(c("sound.files", "selec", 
                                          "start", "end") %in% colnames(X))) 
@@ -85,7 +85,7 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
     
     #frequency spectrum analysis
     songspec <- seewave::spec(r, f = r@samp.rate, plot = FALSE)
-    analysis <- seewave::specprop(songspec, f = r@samp.rate, flim = b, plot = FALSE)
+    analysis <- seewave::specprop(songspec, f = r@samp.rate, flim = c(0, 280/1000), plot = FALSE)
     
     #save parameters
     meanfreq <- analysis$mean/1000
@@ -106,13 +106,13 @@ specan3 <- function(X, bp = c(0,22), wl = 512, threshold = 15, parallel = 1){
     
     #Fundamental frequency parameters
     ff <- seewave::fund(r, f = r@samp.rate, ovlp = 50, threshold = threshold, 
-                        fmax = b[2] * 1000, plot = FALSE, wl = wl)[, 2]
+                        fmax = 280, ylim=c(0, 280/1000), plot = FALSE, wl = wl)[, 2]
     meanfun<-mean(ff, na.rm = T)
     minfun<-min(ff, na.rm = T)
     maxfun<-max(ff, na.rm = T)
     
     #Dominant frecuency parameters
-    y <- seewave::dfreq(r, f = r@samp.rate, wl = wl, ovlp = 0, plot = F, threshold = threshold, bandpass = b * 1000, fftw = TRUE)[, 2]
+    y <- seewave::dfreq(r, f = r@samp.rate, wl = wl, ylim=c(0, 280/1000), ovlp = 0, plot = F, threshold = threshold, bandpass = b * 1000, fftw = TRUE)[, 2]
     meandom <- mean(y, na.rm = TRUE)
     mindom <- min(y, na.rm = TRUE)
     maxdom <- max(y, na.rm = TRUE)

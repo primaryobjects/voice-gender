@@ -16,6 +16,8 @@ $(document).ready(function() {
         }
     });
 
+    $('#graphs').hide();
+
     $('#btnRecord').click(function() {
         if (!AudioManager.isRecording) {
         	if (typeof(ga) != 'undefined') {
@@ -95,7 +97,6 @@ $(document).ready(function() {
     $('#audio').hide();
     $('#btnProcessRecording').hide();
 });
-
 function stopPlay() {
     // Stop playing audio, update the icon.
     $('.fa-stop').removeClass('fa-stop').addClass('fa-play').css('color', 'black');
