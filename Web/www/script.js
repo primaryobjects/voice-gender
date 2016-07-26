@@ -97,6 +97,7 @@ $(document).ready(function() {
     $('#audio').hide();
     $('#btnProcessRecording').hide();
 });
+
 function stopPlay() {
     // Stop playing audio, update the icon.
     $('.fa-stop').removeClass('fa-stop').addClass('fa-play').css('color', 'black');
