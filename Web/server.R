@@ -323,12 +323,8 @@ process <- function(path) {
       minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
       meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
       maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
-      text(duration(content1$wave) / 2, 0.05, labels = paste('Minimum Frequency = ', minf, 'hz'))
-      text(duration(content1$wave) / 2, 0.03, labels = paste('Avgerage Frequency = ', meanf, 'hz'), col='darkgreen', cex=1.25)
-      text(duration(content1$wave) / 2, 0.01, labels = paste('Maximum Frequency = ', maxf, 'hz'))
-      
-      
-      
+      legend(0.5, 0.05, legend=c(paste('Min frequency', minf, 'hz'), paste('Average frequency', meanf, 'hz'), paste('Max frequency', maxf, 'hz')), text.col=c('black', 'darkgreen', 'black'), pch=c(19, 19, 19))
+
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), threshold=5, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
 #      par(new=TRUE)
       #fund(wav, threshold=6, fmax=8000, type="l", col="green", lwd=2, xlab='', xaxt='n', yaxt='n')

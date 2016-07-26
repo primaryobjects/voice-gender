@@ -10,4 +10,6 @@ $(document).ready(function() {
             ga('send', 'event', 'file1', 'click');
         }
     });
+
+    $('#graphs').hide();
 });
