@@ -86,7 +86,7 @@ The following decision tree, produced by the CART model, provides a high-level o
 
 ![Screenshot 1](https://raw.githubusercontent.com/primaryobjects/voice-gender/master/images/voice-plot-1.png)
 
-After narrowing the frequency range to 0hz-280hz with a threshold of 15dB, the accuracy is boosted to near perfect, and the following CART model is described. Mean fundamental frequency serves as a powerful indicator of voice gender, with a threshold of 140hz separating male from female classifications.
+After narrowing the frequency range to 0hz-280hz with a sound threshold of 15%, the accuracy is boosted to near perfect, and the following CART model is described. Mean fundamental frequency serves as a powerful indicator of voice gender, with a threshold of 140hz separating male from female classifications.
 
 ![Screenshot 2](https://raw.githubusercontent.com/primaryobjects/voice-gender/master/images/voice-plot-2.png)
 
