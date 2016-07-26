@@ -406,7 +406,7 @@ predictStacked <- predict(genderStacked, newdata=combo)
 table(predictStacked, train$label)
 
 # trans <- processFolder('sanity')
-# trans$label <- c(2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2)
+# trans$label <- c(2, 2, 2, 2, 2, 2, 2, 1, 1, 1, 1, 1, 1, 1, 1, 2, 2, 2, 1, 1, 2)
 # trans$label <- factor(trans$label, labels=c('male', 'female'))
 # 
 # tpred <- predict(genderTunedForest, newdata=trans)
