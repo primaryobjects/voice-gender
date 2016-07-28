@@ -35,7 +35,7 @@ shinyUI(fluidPage(
                              div(id='result', style='font-size: 22px;', htmlOutput('content')),
                              div(style='margin: 20px 0 0 0;'),
                              
-                             conditionalPanel(condition='output.content != null',
+                             conditionalPanel(condition='output.content != null && output.content.indexOf("Please enter") == -1',
                                tabsetPanel(id='graphs',
                                  tabPanel('Frequency Graph', plotOutput("graph1", width=1000, height=500)),
                                  tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500))
