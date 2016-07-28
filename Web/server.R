@@ -55,11 +55,7 @@ shinyServer(function(input, output, session) {
     # be found.
     content <- ''
     inFile <- input$file1
-    
-    hide('graphs')
-    hide('graph1')
-    hide('graph2')
-    
+
     if (grepl('.wav', tolower(inFile$name)) != TRUE) {
       content <- '<div class="shiny-output-error-validation">Please select a .WAV file to upload.</div>'
     }
@@ -75,7 +71,6 @@ shinyServer(function(input, output, session) {
         if (!is.null(result$graph1)) {
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
-          runjs("document.getElementById('graphs').style.display = 'block'; document.getElementById('graph1').style.display = 'block'; document.getElementById('graph2').style.display = 'block';")
         }
       })
     }
@@ -94,10 +89,7 @@ shinyServer(function(input, output, session) {
     disable('btnUrl')
     disable('url')
     disable('file1')
-    hide('graphs')
-    hide('graph1')
-    hide('graph2')
-    
+
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
       withProgress(message='Please wait ..', value=0, {
         result <- processUrl(url, input$model)
@@ -106,7 +98,6 @@ shinyServer(function(input, output, session) {
         if (!is.null(result$graph1)) {
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
-          runjs("document.getElementById('graphs').style.display = 'block'; document.getElementById('graph1').style.display = 'block'; document.getElementById('graph2').style.display = 'block';")
         }
       })
     }
@@ -124,10 +115,6 @@ shinyServer(function(input, output, session) {
   output$content <- eventReactive(v$data, {
     HTML(v$data)
   })
-
-  hide("graphs")
-  hide("graph1")
-  hide("graph2")
 })
 
 processFile <- function(inFile, model) {
@@ -224,6 +211,8 @@ processUrl <- function(url, model) {
     # Set directory to read file.
     setwd(path)
 
+    incProgress(0.2, message = 'Converting mp3 to wav ..')
+    
     # Convert mp3 to wav (does not always work due to bug with tuner).
     try(mp32wav())
 
@@ -246,6 +235,7 @@ processUrl <- function(url, model) {
     else {
       content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
       graph1 <- NULL
+      graph2 <- NULL
     }
     
     # Delete temp file.
@@ -265,15 +255,15 @@ process <- function(path) {
   graph2 <- NULL
   
   tryCatch({
-    incProgress(0.2, message = 'Processing voice ..')
+    incProgress(0.3, message = 'Processing voice ..')
     content1 <- gender(path, 1)
-    incProgress(0.3, message = 'Analyzing voice 1/4 ..')
+    incProgress(0.4, message = 'Analyzing voice 1/4 ..')
     content2 <- gender(path, 2, content1)
-    incProgress(0.4, message = 'Analyzing voice 2/4 ..')
+    incProgress(0.5, message = 'Analyzing voice 2/4 ..')
     content3 <- gender(path, 3, content1)
-    incProgress(0.5, message = 'Analyzing voice 3/4 ..')
+    incProgress(0.6, message = 'Analyzing voice 3/4 ..')
     content4 <- gender(path, 4, content1)
-    incProgress(0.6, message = 'Analyzing voice 4/4 ..')
+    incProgress(0.7, message = 'Analyzing voice 4/4 ..')
     content5 <- gender(path, 5, content1)
     
     incProgress(0.8, message = 'Building graph 2/2 ..')

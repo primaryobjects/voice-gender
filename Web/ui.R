@@ -35,11 +35,13 @@ shinyUI(fluidPage(
                              div(id='result', style='font-size: 22px;', htmlOutput('content')),
                              div(style='margin: 20px 0 0 0;'),
                              
-                             tabsetPanel(id='graphs',
-                               tabPanel('Frequency Graph', plotOutput("graph1", width=1000, height=500)),
-                               tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500))
+                             conditionalPanel(condition='output.content != null',
+                               tabsetPanel(id='graphs',
+                                 tabPanel('Frequency Graph', plotOutput("graph1", width=1000, height=500)),
+                                 tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500))
+                               ),
+                               div(style='margin: 20px 0 0 0;')
                              ),
-                             div(style='margin: 20px 0 0 0;'),
 
                              h4('Voice Tips and Tricks'),
                              p('- Pitch, combined with intonation (the rise and fall of the voice in speaking), are important factors in classifying male versus female.'),
@@ -52,6 +54,6 @@ shinyUI(fluidPage(
                              p('This application uses a method of artificial intelligence, called machine learning, to determine the gender of a voice.'),
                              p('The program was trained on a dataset of 3,168 voice samples, split between male and female voices. By analyzing the acoustic properties of the voices, the program is able to achieve 89% accuracy on the test set.'),
                              p('Interested in learning more? Read the complete ', a(href='http://www.primaryobjects.com/2016/06/22/identifying-the-gender-of-a-voice-using-machine-learning/', target='_blank', 'article')),
-                             p('Created by ', a(href='http://www.primaryobjects.com/kory-becker', target='_blank', 'Kory Becker'), br('6/22/2016'))
+                             p('Created by ', a(href='http://www.primaryobjects.com/kory-becker', target='_blank', 'Kory Becker'), br('7/28/2016'))
                    ))
 ))
