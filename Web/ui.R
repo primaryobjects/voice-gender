@@ -11,7 +11,8 @@ shinyUI(fluidPage(
   conditionalPanel(condition='!output.json',
                    tags$head(tags$script(src = "script.js"),
                    			 tags$script(src = "google-analytics.js"),
-                             tags$style(HTML("a { font-weight: bold; } .shiny-output-error-validation { color: red; } .shiny-progress .progress { background-color: #ff00ff; }"))),
+                         tags$style(HTML("a { font-weight: bold; } .shiny-output-error-validation { color: red; } .shiny-progress .progress { background-color: #ff00ff; } .fa-info { margin: 0 0 0 10px; cursor: pointer; font-size: 15px; color: #808080; } .fa-headphones { margin: 0 5px 0 2px; } .average-pitch { font-size: 18px; } .detail-summary { font-size: 16px; } .detail-summary .detail-header { font-size: 18px; margin: 0 0 10px 0; } .detail-summary span { font-weight: bold; }"))
+                   ),
                    titlePanel('What is Your Voice Gender?'),
                    div(style='margin: 30px 0 0 0;'),
                    mainPanel(width = '100%',

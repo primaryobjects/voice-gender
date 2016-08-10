@@ -135,15 +135,10 @@ processFile <- function(inFile, model) {
   
   # Process.
   result <- process(filePath)
-  content1 <- result$content1
-  content2 <- result$content2
-  content3 <- result$content3
-  content4 <- result$content4
-  content5 <- result$content5
-  
+
   unlink(path, recursive = T)
   
-  list(content=paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)'), graph1=result$graph1, graph2=result$graph2)
+  list(content=formatResult(result), graph1=result$graph1, graph2=result$graph2)
 }
 
 processUrl <- function(url, model) {
@@ -163,18 +158,13 @@ processUrl <- function(url, model) {
     
     # Process.        
     result <- process(fileName)
-    content1 <- result$content1
-    content2 <- result$content2
-    content3 <- result$content3
-    content4 <- result$content4
-    content5 <- result$content5
     graph1 <- result$graph1
     graph2 <- result$graph2
     
     # Delete temp file.
     file.remove(fileName)
     
-    content <- paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)')
+    content <- formatResult(result)
   }
   else if (grepl('clyp.it', tolower(url))) {
     # Format url for api.
@@ -222,15 +212,10 @@ processUrl <- function(url, model) {
     if (file.exists(wavFilePath)) {
       # Process.
       result <- process(wavFilePath)
-      content1 <- result$content1
-      content2 <- result$content2
-      content3 <- result$content3
-      content4 <- result$content4
-      content5 <- result$content5
       graph1 <- result$graph1
       graph2 <- result$graph2
       
-      content <- paste0('SVM (96/85): ', colorize(content1$label), ' (', round(content1$prob * 100), '%)<br>', 'XGBoost Small: ', colorize(content2$label), ' (', round(content2$prob * 100), '%)<br>', 'Tuned Random Forest (100/87): ', colorize(content3$label), ' (', round(content3$prob * 100), '%)<br>', 'XGBoost Large (100/87): ', colorize(content4$label), ' (', round(content4$prob * 100), '%)<br>', 'Stacked (100/89): ', colorize(content5$label), ' (', round(content5$prob * 100), '%)')
+      content <- formatResult(result)
     }
     else {
       content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
@@ -253,6 +238,7 @@ process <- function(path) {
   content5 <- list(label = '', prob = 0, data = NULL)
   graph1 <- NULL
   graph2 <- NULL
+  freq <- list(minf = NULL, meanf = NULL, maxf = NULL)
   
   tryCatch({
     incProgress(0.3, message = 'Processing voice ..')
@@ -271,6 +257,12 @@ process <- function(path) {
     wl <- 2048
     ylim <- 280
     thresh <- 5
+    
+    # Calculate fundamental frequencies.
+    freqs <- fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), threshold=thresh, plot=F, wl=wl)
+    freq$minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
+    freq$meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
+    freq$maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
     
     graph1 <- renderPlot({
       #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
@@ -298,8 +290,6 @@ process <- function(path) {
       # text(duration(content1$wave) / 2, 0.46, labels = paste('Avgerage Frequency = ', meanf, 'hz'))
       # text(duration(content1$wave) / 2, 0.45, labels = paste('Maximum Frequency = ', maxf, 'hz'))
       
-      
-      freqs <- fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), threshold=thresh, plot=F, wl=wl)
       fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), type='l', threshold=thresh, col='red', wl=wl)
       x <- freqs[,1]
       y <- freqs[,2] + 0.01
@@ -310,10 +300,7 @@ process <- function(path) {
       sublabels <- paste(round(labels[seq(1, length(labels), 4)] * 1000, 0), 'hz')
       text(subx, suby, labels = sublabels)
       
-      minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
-      meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
-      maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
-      legend(0.5, 0.05, legend=c(paste('Min frequency', minf, 'hz'), paste('Average frequency', meanf, 'hz'), paste('Max frequency', maxf, 'hz')), text.col=c('black', 'darkgreen', 'black'), pch=c(19, 19, 19))
+      legend(0.5, 0.05, legend=c(paste('Min frequency', freq$minf, 'hz'), paste('Average frequency', freq$meanf, 'hz'), paste('Max frequency', freq$maxf, 'hz')), text.col=c('black', 'darkgreen', 'black'), pch=c(19, 19, 19))
 
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), threshold=5, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
 #      par(new=TRUE)
@@ -340,7 +327,7 @@ process <- function(path) {
     }
   })
   
-  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, graph1=graph1, graph2=graph2)
+  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, graph1=graph1, graph2=graph2, freq=freq)
 }
 
 colorize <- function(tag) {
@@ -357,6 +344,25 @@ colorize <- function(tag) {
   }
   
   result
+}
+
+formatResult <- function(result) {
+  pitchColor <- '#aa00aa;'
+  if (result$content5$label == 'male') {
+    pitchColor <- '#0000ff'
+  }
+  html <- paste0('Overall Result: <span style="font-weight: bold;">', colorize(result$content5$label), '</span> <span class="average-pitch"><i class="fa fa-headphones" aria-hidden="true" title="Average Pitch" style="color: ', pitchColor, '"></i>', result$freq$meanf, ' hz</span><hr>')
+
+  html <- paste0(html, '<div class="detail-summary">')
+  html <- paste0(html, '<div class="detail-header">Details</div>')
+  html <- paste0(html, 'Model 1: ', colorize(result$content1$label), '<i class="fa fa-info" aria-hidden="true" title="Support Vector Machine (SVM), Threshold value: ', round(result$content1$prob * 100), '%"></i>,  ')
+  html <- paste0(html, 'Model 2: ', colorize(result$content2$label), '<i class="fa fa-info" aria-hidden="true" title="XGBoost Small, Threshold value: ', round(result$content2$prob * 100), '%"></i>,  ')
+  html <- paste0(html, 'Model 3: ', colorize(result$content3$label), '<i class="fa fa-info" aria-hidden="true" title="Tuned Random Forest, Threshold value: ', round(result$content3$prob * 100), '%"></i>,  ')
+  html <- paste0(html, 'Model 4: ', colorize(result$content4$label), '<i class="fa fa-info" aria-hidden="true" title="XGBoost Large, Threshold value: ', round(result$content4$prob * 100), '%"></i>,  ')
+  html <- paste0(html, 'Model 5: ', colorize(result$content5$label), '<i class="fa fa-info" aria-hidden="true" title="Stacked, Threshold value: ', round(result$content5$prob * 100), '%"></i>')
+  html <- paste0(html, '</div>')
+  
+  html
 }
 
 restart <- function(e) {
