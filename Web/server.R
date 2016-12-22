@@ -173,58 +173,66 @@ processUrl <- function(url, model) {
     
     # Download json.
     json <- getURL(url)
-    data <- fromJSON(json)
-    mp3 <- data$Mp3Url
-    
-    # Create a unique filename.
-    r <- sample(1:100000, 1)
-    mp3FilePath <- paste0('./temp', r, '/temp', r, '.mp3')
-    wavFilePath <- gsub('.mp3', '.wav', mp3FilePath)
-    
-    currentPath <- getwd()
-    fileName <- basename(mp3FilePath)
-    path <- dirname(mp3FilePath)
-    
-    # Create directory.
-    dir.create(path)
-    
-    incProgress(0.1, message = 'Downloading clip ..')
-    
-    # Download mp3 file.
-    download.file(mp3, mp3FilePath)
-    
-    print(path)
-    print(mp3FilePath)
-    print(wavFilePath)
-    print(fileName)
-    
-    # Set directory to read file.
-    setwd(path)
-
-    incProgress(0.2, message = 'Converting mp3 to wav ..')
-    
-    # Convert mp3 to wav (does not always work due to bug with tuner).
-    try(mp32wav())
-
-    # Restore path.
-    setwd(currentPath)
-    
-    if (file.exists(wavFilePath)) {
-      # Process.
-      result <- process(wavFilePath)
-      graph1 <- result$graph1
-      graph2 <- result$graph2
+    if (grepl('mp3url', tolower(json))) {
+      data <- fromJSON(json)
+      mp3 <- data$Mp3Url
       
-      content <- formatResult(result)
+      # Create a unique filename.
+      r <- sample(1:100000, 1)
+      mp3FilePath <- paste0('./temp', r, '/temp', r, '.mp3')
+      wavFilePath <- gsub('.mp3', '.wav', mp3FilePath)
+      
+      currentPath <- getwd()
+      fileName <- basename(mp3FilePath)
+      path <- dirname(mp3FilePath)
+      
+      # Create directory.
+      dir.create(path)
+      
+      incProgress(0.1, message = 'Downloading clip ..')
+      
+      # Download mp3 file.
+      download.file(mp3, mp3FilePath)
+      
+      print(path)
+      print(mp3FilePath)
+      print(wavFilePath)
+      print(fileName)
+      
+      # Set directory to read file.
+      setwd(path)
+  
+      incProgress(0.2, message = 'Converting mp3 to wav ..')
+      
+      # Convert mp3 to wav (does not always work due to bug with tuner).
+      try(mp32wav())
+  
+      # Restore path.
+      setwd(currentPath)
+      
+      if (file.exists(wavFilePath)) {
+        # Process.
+        result <- process(wavFilePath)
+        graph1 <- result$graph1
+        graph2 <- result$graph2
+        
+        content <- formatResult(result)
+      }
+      else {
+        content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
+        graph1 <- NULL
+        graph2 <- NULL
+      }
+      
+      # Delete temp file.
+      unlink(path, recursive=T)
     }
     else {
-      content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
+      # 404 Not Found. Maybe a private clyp.it url?
+      content <- paste0('<div class="shiny-output-error-validation">Error accessing clyp.it URL (404). Check if the audio clip is set to Private in your clyp.it account.</div>')
       graph1 <- NULL
       graph2 <- NULL
     }
-    
-    # Delete temp file.
-    unlink(path, recursive=T)
   }
   
   list(content=content, graph1=graph1, graph2=graph2)
