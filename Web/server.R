@@ -64,7 +64,7 @@ shinyServer(function(input, output, session) {
       disable('url')
       disable('file1')
       
-      withProgress(message='Please wait ..', value=0, {
+      withProgress(message='Please wait ..', style='old', value=0, {
         result <- processFile(inFile, input$model)
         
         content <- result$content
@@ -91,7 +91,7 @@ shinyServer(function(input, output, session) {
     disable('file1')
 
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
-      withProgress(message='Please wait ..', value=0, {
+      withProgress(message='Please wait ..', style='old', value=0, {
         result <- processUrl(url, input$model)
         
         content <- result$content
