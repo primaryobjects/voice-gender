@@ -10,6 +10,7 @@ library(RCurl)
 library(warbleR)
 library(parallel)
 
+source('config.R')
 source('gender.R')
 
 # REST service endpoint.
@@ -427,7 +428,7 @@ logEntry <- function(message, id = NULL, extra = NULL) {
     
       body <- paste0(body, '}')
     
-      getURL('http://logs-01.loggly.com/inputs/1a8685de-0a4a-4f34-9c0f-7cc02216eb8c', postfields=body)
+      getURL('http://logs-01.loggly.com/inputs/', postfields=body)
     }
   )
 }
