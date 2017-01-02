@@ -428,7 +428,7 @@ logEntry <- function(message, id = NULL, extra = NULL) {
     
       body <- paste0(body, '}')
     
-      getURL('http://logs-01.loggly.com/inputs/', postfields=body)
+      getURL(paste0('http://logs-01.loggly.com/inputs/', token), postfields=body)
     }
   )
 }
