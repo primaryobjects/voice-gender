@@ -102,7 +102,7 @@ After narrowing the frequency range to 0hz-280hz with a sound threshold of 15%, 
 
 ## Copyright
 
-Copyright (c) 2016 Kory Becker http://primaryobjects.com/kory-becker
+Copyright (c) 2017 Kory Becker http://primaryobjects.com/kory-becker
 
 ## Author
 
