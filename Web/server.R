@@ -8,6 +8,7 @@ library(shinyjs)
 library(RJSONIO)
 library(RCurl)
 library(warbleR)
+library(parallel)
 
 source('gender.R')
 
@@ -121,6 +122,8 @@ processFile <- function(inFile, model) {
   # Create a unique filename.
   filePath <- paste0('./temp', sample(1:100000, 1), '/temp', sample(1:100000, 1), '.wav')
   
+  logEntry('File uploaded.', paste0('"inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
+  
   currentPath <- getwd()
   fileName <- basename(filePath)
   path <- dirname(filePath)
@@ -132,16 +135,22 @@ processFile <- function(inFile, model) {
   
   # Copy the temp file to our local folder.
   file.copy(inFile$datapath, filePath)
+
+  logEntry('File copied.', paste0('"inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
   
   # Process.
   result <- process(filePath)
 
   unlink(path, recursive = T)
   
+  logEntry('Classification done.', paste0('"filePath": "', path, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
+  
   list(content=formatResult(result), graph1=result$graph1, graph2=result$graph2)
 }
 
 processUrl <- function(url, model) {
+  origUrl <- url
+  
   if (grepl('vocaroo', tolower(url))) {
     # Create a unique filename.
     fileName <- paste0('temp', sample(1:100000, 1), '.wav')
@@ -153,6 +162,8 @@ processUrl <- function(url, model) {
     
     incProgress(0.1, message = 'Downloading clip ..')
     
+    logEntry('Downloading url.', paste0('"url": "', origUrl, '", "downloadUrl": "', url, '", "fileName": "', fileName, '"'))
+    
     # Download wav file.
     download.file(url, fileName)
     
@@ -160,6 +171,8 @@ processUrl <- function(url, model) {
     result <- process(fileName)
     graph1 <- result$graph1
     graph2 <- result$graph2
+    
+    logEntry('Classification done.', paste0('"url": "', origUrl, '", "filePath": "', fileName, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
     
     # Delete temp file.
     file.remove(fileName)
@@ -191,6 +204,8 @@ processUrl <- function(url, model) {
       
       incProgress(0.1, message = 'Downloading clip ..')
       
+      logEntry('Downloading url.', paste0('"url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
+      
       # Download mp3 file.
       download.file(mp3, mp3FilePath)
       
@@ -204,9 +219,21 @@ processUrl <- function(url, model) {
   
       incProgress(0.2, message = 'Converting mp3 to wav ..')
       
-      # Convert mp3 to wav (does not always work due to bug with tuner).
-      try(mp32wav())
-  
+      logEntry('Converting mp3 to wav.', paste0('"url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
+      
+      # Convert mp3 to wav (does not always work due to bug with tuneR).
+      tryCatch({
+        # Use mcparallel to fork the process and hopefully recover from any R session crash.
+        if(.Platform$OS.type == 'unix') {
+          p <- mcparallel(try(mp32wav()))
+          # wait for job to finish and collect all results.
+          res <- mccollect(p)
+        }
+        else {
+          try(mp32wav())
+        }
+      })
+    
       # Restore path.
       setwd(currentPath)
       
@@ -216,12 +243,16 @@ processUrl <- function(url, model) {
         graph1 <- result$graph1
         graph2 <- result$graph2
         
+        logEntry('Classification done.', paste0('"url": "', origUrl, '", "filePath": "', wavFilePath, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
+        
         content <- formatResult(result)
       }
       else {
         content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
         graph1 <- NULL
         graph2 <- NULL
+        
+        logEntry('Classification error. Error converting mp3 to wav.', paste0('"url": "', origUrl, '"'))
       }
       
       # Delete temp file.
@@ -232,9 +263,11 @@ processUrl <- function(url, model) {
       content <- paste0('<div class="shiny-output-error-validation">Error accessing clyp.it URL (404). Check if the audio clip is set to Private in your clyp.it account.</div>')
       graph1 <- NULL
       graph2 <- NULL
+      
+      logEntry('Classification error. Error accessing clyp.it url', paste0('"url": "', origUrl, '", "apiUrl": "', url, '"'))
     }
   }
-  
+
   list(content=content, graph1=graph1, graph2=graph2)
 }
 
@@ -247,6 +280,8 @@ process <- function(path) {
   graph1 <- NULL
   graph2 <- NULL
   freq <- list(minf = NULL, meanf = NULL, maxf = NULL)
+  
+  logEntry('Classifying.', paste0('"filePath": "', path, '"'))
   
   tryCatch({
     incProgress(0.3, message = 'Processing voice ..')
@@ -371,6 +406,21 @@ formatResult <- function(result) {
   html <- paste0(html, '</div>')
   
   html
+}
+
+logEntry <- function(message, extra = NULL) {
+  try(
+    if (!is.null(message) && nchar(message) > 0) {
+      body <- paste0('{"application": "Voice Gender", "message": "', message, '"')
+      if (!is.null(extra)) {
+        body <- paste0(body, ', ', extra)
+      }
+    
+      body <- paste0(body, '}')
+    
+      getURL('http://logs-01.loggly.com/inputs/1a8685de-0a4a-4f34-9c0f-7cc02216eb8c', postfields=body)
+    }
+  )
 }
 
 restart <- function(e) {
