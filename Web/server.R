@@ -285,7 +285,7 @@ process <- function(path) {
   graph2 <- NULL
   freq <- list(minf = NULL, meanf = NULL, maxf = NULL)
   
-  id <- gsub('temp(\\d+)\\.wav', '\\1', path)
+  id <- gsub('.+temp(\\d+)\\.wav', '\\1', path)
   logEntry('Classifying.', paste0('"id": "', id, '", "filePath": "', path, '"'))
   
   tryCatch({
