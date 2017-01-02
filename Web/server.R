@@ -413,7 +413,7 @@ formatResult <- function(result) {
   html
 }
 
-logEntry <- function(message, id = NULL, extra = NULL) {
+logEntry <- function(message, extra = NULL, id = NULL) {
   try(
     if (!is.null(message) && nchar(message) > 0) {
       body <- paste0('{"application": "Voice Gender", "message": "', message, '"')
