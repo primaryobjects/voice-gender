@@ -160,9 +160,9 @@ processUrl <- function(url, model) {
     # Create a unique filename.
     fileName <- paste0('temp', id, '.wav')
     
-    # Get id from url.
-    id <- gsub('.+/i/(\\w+)', '\\1', url)
-    url <- paste0('http://vocaroo.com/media_command.php?media=', id, '&command=download_wav')
+    # Get apiId from url.
+    apiId <- gsub('.+/i/(\\w+)', '\\1', url)
+    url <- paste0('http://vocaroo.com/media_command.php?media=', apiId, '&command=download_wav')
     print(paste('Downloading', url, sep=' '))
     
     incProgress(0.1, message = 'Downloading clip ..')
