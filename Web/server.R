@@ -120,9 +120,10 @@ shinyServer(function(input, output, session) {
 
 processFile <- function(inFile, model) {
   # Create a unique filename.
-  filePath <- paste0('./temp', sample(1:100000, 1), '/temp', sample(1:100000, 1), '.wav')
+  id <- sample(1:100000, 1)
+  filePath <- paste0('./temp', sample(1:100000, 1), '/temp', id, '.wav')
   
-  logEntry('File uploaded.', paste0('"inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
+  logEntry('File uploaded.', paste0('"inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'), id)
   
   currentPath <- getwd()
   fileName <- basename(filePath)
@@ -136,14 +137,14 @@ processFile <- function(inFile, model) {
   # Copy the temp file to our local folder.
   file.copy(inFile$datapath, filePath)
 
-  logEntry('File copied.', paste0('"inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
+  logEntry('File copied.', paste0('"inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'), id)
   
   # Process.
   result <- process(filePath)
 
   unlink(path, recursive = T)
   
-  logEntry('Classification done.', paste0('"filePath": "', path, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
+  logEntry('Classification done.', paste0('"filePath": "', path, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'), id)
   
   list(content=formatResult(result), graph1=result$graph1, graph2=result$graph2)
 }
@@ -153,7 +154,7 @@ processUrl <- function(url, model) {
   
   if (grepl('vocaroo', tolower(url))) {
     # Create a unique filename.
-    fileName <- paste0('temp', sample(1:100000, 1), '.wav')
+    fileName <- paste0('temp', id, '.wav')
     
     # Get id from url.
     id <- gsub('.+/i/(\\w+)', '\\1', url)
@@ -162,7 +163,7 @@ processUrl <- function(url, model) {
     
     incProgress(0.1, message = 'Downloading clip ..')
     
-    logEntry('Downloading url.', paste0('"url": "', origUrl, '", "downloadUrl": "', url, '", "fileName": "', fileName, '"'))
+    logEntry('Downloading url.', paste0('"url": "', origUrl, '", "downloadUrl": "', url, '", "fileName": "', fileName, '"'), id)
     
     # Download wav file.
     download.file(url, fileName)
@@ -172,7 +173,7 @@ processUrl <- function(url, model) {
     graph1 <- result$graph1
     graph2 <- result$graph2
     
-    logEntry('Classification done.', paste0('"url": "', origUrl, '", "filePath": "', fileName, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
+    logEntry('Classification done.', paste0('"url": "', origUrl, '", "filePath": "', fileName, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'), id)
     
     # Delete temp file.
     file.remove(fileName)
@@ -183,6 +184,9 @@ processUrl <- function(url, model) {
     # Format url for api.
     url <- gsub('www.clyp.it', 'api.clyp.it', url)
     url <- gsub('/clyp.it', '/api.clyp.it', url)
+
+    # Create a unique id for the file.
+    id <- sample(1:100000, 1)
     
     # Download json.
     json <- getURL(url)
@@ -191,8 +195,7 @@ processUrl <- function(url, model) {
       mp3 <- data$Mp3Url
       
       # Create a unique filename.
-      r <- sample(1:100000, 1)
-      mp3FilePath <- paste0('./temp', r, '/temp', r, '.mp3')
+      mp3FilePath <- paste0('./temp', id, '/temp', id, '.mp3')
       wavFilePath <- gsub('.mp3', '.wav', mp3FilePath)
       
       currentPath <- getwd()
@@ -204,7 +207,7 @@ processUrl <- function(url, model) {
       
       incProgress(0.1, message = 'Downloading clip ..')
       
-      logEntry('Downloading url.', paste0('"url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
+      logEntry('Downloading url.', paste0('"url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'), id)
       
       # Download mp3 file.
       download.file(mp3, mp3FilePath)
@@ -219,7 +222,7 @@ processUrl <- function(url, model) {
   
       incProgress(0.2, message = 'Converting mp3 to wav ..')
       
-      logEntry('Converting mp3 to wav.', paste0('"url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
+      logEntry('Converting mp3 to wav.', paste0('"url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'), id)
       
       # Convert mp3 to wav (does not always work due to bug with tuneR).
       tryCatch({
@@ -243,7 +246,7 @@ processUrl <- function(url, model) {
         graph1 <- result$graph1
         graph2 <- result$graph2
         
-        logEntry('Classification done.', paste0('"url": "', origUrl, '", "filePath": "', wavFilePath, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
+        logEntry('Classification done.', paste0('"url": "', origUrl, '", "filePath": "', wavFilePath, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'), id)
         
         content <- formatResult(result)
       }
@@ -252,7 +255,7 @@ processUrl <- function(url, model) {
         graph1 <- NULL
         graph2 <- NULL
         
-        logEntry('Classification error. Error converting mp3 to wav.', paste0('"url": "', origUrl, '"'))
+        logEntry('Classification error. Error converting mp3 to wav.', paste0('"url": "', origUrl, '"'), id)
       }
       
       # Delete temp file.
@@ -264,7 +267,7 @@ processUrl <- function(url, model) {
       graph1 <- NULL
       graph2 <- NULL
       
-      logEntry('Classification error. Error accessing clyp.it url', paste0('"url": "', origUrl, '", "apiUrl": "', url, '"'))
+      logEntry('Classification error. Error accessing clyp.it url', paste0('"url": "', origUrl, '", "apiUrl": "', url, '"'), id)
     }
   }
 
@@ -281,7 +284,8 @@ process <- function(path) {
   graph2 <- NULL
   freq <- list(minf = NULL, meanf = NULL, maxf = NULL)
   
-  logEntry('Classifying.', paste0('"filePath": "', path, '"'))
+  id <- gsub('temp(\\d+)\\.wav', '\\1', path)
+  logEntry('Classifying.', paste0('"filePath": "', path, '"'), id)
   
   tryCatch({
     incProgress(0.3, message = 'Processing voice ..')
@@ -408,10 +412,15 @@ formatResult <- function(result) {
   html
 }
 
-logEntry <- function(message, extra = NULL) {
+logEntry <- function(message, id = NULL, extra = NULL) {
   try(
     if (!is.null(message) && nchar(message) > 0) {
       body <- paste0('{"application": "Voice Gender", "message": "', message, '"')
+      
+      if (!is.null(id)) {
+        body <- paste0(body, ', "id": "', id, '"')
+      }
+      
       if (!is.null(extra)) {
         body <- paste0(body, ', ', extra)
       }
