@@ -153,6 +153,9 @@ processFile <- function(inFile, model) {
 processUrl <- function(url, model) {
   origUrl <- url
   
+  # Create a unique id for the file.
+  id <- sample(1:100000, 1)
+  
   if (grepl('vocaroo', tolower(url))) {
     # Create a unique filename.
     fileName <- paste0('temp', id, '.wav')
@@ -186,9 +189,6 @@ processUrl <- function(url, model) {
     url <- gsub('www.clyp.it', 'api.clyp.it', url)
     url <- gsub('/clyp.it', '/api.clyp.it', url)
 
-    # Create a unique id for the file.
-    id <- sample(1:100000, 1)
-    
     # Download json.
     json <- getURL(url)
     if (grepl('mp3url', tolower(json))) {
