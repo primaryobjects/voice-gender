@@ -9,6 +9,7 @@ library(RJSONIO)
 library(RCurl)
 library(warbleR)
 library(parallel)
+library(tuneR)
 
 source('config.R')
 source('gender.R')
@@ -211,8 +212,9 @@ processUrl <- function(url, model) {
       logEntry('Downloading url.', paste0('"id": "', id, '", "url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
       
       # Download mp3 file.
-      download.file(mp3, mp3FilePath)
+      download.file(mp3, mp3FilePath, mode='wb')
       
+      print(mp3)
       print(path)
       print(mp3FilePath)
       print(wavFilePath)
@@ -241,6 +243,11 @@ processUrl <- function(url, model) {
       # Restore path.
       setwd(currentPath)
       
+      if (!file.exists(wavFilePath)) {
+        r <- readMP3(mp3FilePath)
+        writeWave(r, wavFilePath, extensible=FALSE)        
+      }
+      
       if (file.exists(wavFilePath)) {
         # Process.
         result <- process(wavFilePath)
@@ -259,8 +266,15 @@ processUrl <- function(url, model) {
         logEntry('Classification error. Error converting mp3 to wav.', paste0('"id": "', id, '", "url": "', origUrl, '"'))
       }
       
-      # Delete temp file.
+      # Delete temp folder.
       unlink(path, recursive=T)
+      
+      # Delete extraneous temp file.
+      wavFileName <- gsub('.mp3', '.wav', fileName, fixed=T)
+      fileNameNoExt <- gsub('.mp3', '', fileName, fixed=T)
+      tempFilePath <- paste0(fileNameNoExt, wavFileName)
+      unlink(tempFilePath)
+      
     }
     else {
       # 404 Not Found. Maybe a private clyp.it url?
