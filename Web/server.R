@@ -94,6 +94,9 @@ shinyServer(function(input, output, session) {
     disable('file1')
 
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
+      # Extract url, removing any extraneous text.
+      url <- regmatches(url, regexpr('(http|ftp|https)://([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?', url, perl=T))
+      
       withProgress(message='Please wait ..', style='old', value=0, {
         result <- processUrl(url, input$model)
         

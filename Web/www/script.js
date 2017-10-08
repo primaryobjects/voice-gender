@@ -10,4 +10,11 @@ $(document).ready(function() {
             ga('send', 'event', 'file1', 'click');
         }
     });
+
+    $(document).keyup(function(event) {
+        // Support enter key on url field.
+        if ($("#url").is(":focus") && (event.keyCode === 13)) {
+            $("#btnUrl").click();
+        }
+    });
 });
