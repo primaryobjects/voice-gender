@@ -72,6 +72,7 @@ shinyServer(function(input, output, session) {
         
         content <- result$content
         if (!is.null(result$graph1)) {
+          output$summary <- renderTable(result$summary)
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
         }
@@ -102,6 +103,7 @@ shinyServer(function(input, output, session) {
         
         content <- result$content
         if (!is.null(result$graph1)) {
+          output$summary <- renderTable(result$summary)
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
         }
@@ -151,7 +153,7 @@ processFile <- function(inFile, model) {
   
   logEntry('Classification done.', paste0('"id": "', id, '", "filePath": "', path, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
   
-  list(content=formatResult(result), graph1=result$graph1, graph2=result$graph2)
+  list(content=formatResult(result), summary=result$summary, graph1=result$graph1, graph2=result$graph2)
 }
 
 processUrl <- function(url, model) {
@@ -225,7 +227,7 @@ processUrl <- function(url, model) {
       
       # Set directory to read file.
       setwd(path)
-  
+      
       incProgress(0.2, message = 'Converting mp3 to wav ..')
       
       logEntry('Converting mp3 to wav.', paste0('"id": "', id, '", "url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
@@ -242,7 +244,7 @@ processUrl <- function(url, model) {
           try(mp32wav())
         }
       })
-    
+      
       # Restore path.
       setwd(currentPath)
       
@@ -260,6 +262,7 @@ processUrl <- function(url, model) {
         logEntry('Classification done.', paste0('"id": "', id, '", "url": "', origUrl, '", "filePath": "', wavFilePath, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
         
         content <- formatResult(result)
+        summary <- result$summary
       }
       else {
         content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
@@ -288,8 +291,8 @@ processUrl <- function(url, model) {
       logEntry('Classification error. Error accessing clyp.it url', paste0('"id": "', id, '", "url": "', origUrl, '", "apiUrl": "', url, '"'))
     }
   }
-
-  list(content=content, graph1=graph1, graph2=graph2)
+  
+  list(content=content, summary=summary, graph1=graph1, graph2=graph2)
 }
 
 process <- function(path) {
@@ -328,6 +331,7 @@ process <- function(path) {
     freq$minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
     freq$meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
     freq$maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
+    summary <- data.frame(Duration=paste(duration(content1$wave), 's'), Sampling.Rate=content1$wave@samp.rate, Average.Frequency=paste(freq$meanf, 'hz'), Min.Frequency=paste(freq$minf, 'hz'), Max.Frequency=paste(freq$maxf, 'hz'))
     
     graph1 <- renderPlot({
       #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
@@ -392,7 +396,7 @@ process <- function(path) {
     }
   })
   
-  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, graph1=graph1, graph2=graph2, freq=freq)
+  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, summary=summary, graph1=graph1, graph2=graph2, freq=freq)
 }
 
 colorize <- function(tag) {
@@ -438,9 +442,9 @@ logEntry <- function(message, extra = NULL) {
       if (!is.null(extra)) {
         body <- paste0(body, ', ', extra)
       }
-    
+      
       body <- paste0(body, '}')
-    
+      
       getURL(paste0('http://logs-01.loggly.com/inputs/', token), postfields=body)
     }
   )
