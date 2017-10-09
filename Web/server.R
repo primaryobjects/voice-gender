@@ -72,7 +72,8 @@ shinyServer(function(input, output, session) {
         
         content <- result$content
         if (!is.null(result$graph1)) {
-          output$summary <- renderTable(result$summary)
+          output$summary1 <- renderTable(result$summary$summary1)
+          output$summary2 <- renderTable(result$summary$summary2)
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
         }
@@ -103,7 +104,8 @@ shinyServer(function(input, output, session) {
         
         content <- result$content
         if (!is.null(result$graph1)) {
-          output$summary <- renderTable(result$summary)
+          output$summary1 <- renderTable(result$summary$summary1)
+          output$summary2 <- renderTable(result$summary$summary2)
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
         }
@@ -331,8 +333,18 @@ process <- function(path) {
     freq$minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
     freq$meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
     freq$maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
-    summary <- data.frame(Duration=paste(duration(content1$wave), 's'), Sampling.Rate=content1$wave@samp.rate, Average.Frequency=paste(freq$meanf, 'hz'), Min.Frequency=paste(freq$minf, 'hz'), Max.Frequency=paste(freq$maxf, 'hz'))
+
+    summary1 <- data.frame(Duration=paste(duration(content1$wave), 's'), Sampling.Rate=content1$wave@samp.rate, Average.Frequency=paste(freq$meanf, 'hz'), Min.Frequency=paste(freq$minf, 'hz'), Max.Frequency=paste(freq$maxf, 'hz'))
     
+    summary2 <- data.frame()
+    summary2 <- rbind(summary2, data.frame(Type='Support Vector Machine (SVM)', Label=content1$label, Threshold=paste0(round(content1$prob * 100), '%')))
+    summary2 <- rbind(summary2, data.frame(Type='XGBoost Small', Label=content2$label, Threshold=paste0(round(content2$prob * 100), '%')))
+    summary2 <- rbind(summary2, data.frame(Type='Tuned Random Forest', Label=content3$label, Threshold=paste0(round(content3$prob * 100), '%')))
+    summary2 <- rbind(summary2, data.frame(Type='XGBoost Large', Label=content4$label, Threshold=paste0(round(content4$prob * 100), '%')))
+    summary2 <- rbind(summary2, data.frame(Type='Stacked', Label=content5$label, Threshold=paste0(round(content5$prob * 100), '%')))
+    summary2$Model <- c(1:nrow(summary2))
+    summary2 <- summary2[,c(ncol(summary2),1:(ncol(summary2)-1))]
+
     graph1 <- renderPlot({
       #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
       #content1$wave <- fir(content1$wave, from=80, to=280, output='Wave')
@@ -385,6 +397,7 @@ process <- function(path) {
       spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,ylim/1000), wl=wl)
       #par(new=TRUE)
       #dfreq(content1$wave, threshold=thresh, wl=wl, ylim=c(0, ylim/1000), type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
+      #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), ylim=c(0, 10), type = "o", main = "Dominant Frequency Every 10 ms")
     })
   }, warning = function(e) {
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
@@ -395,23 +408,20 @@ process <- function(path) {
       restart(e)
     }
   })
-  
-  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, summary=summary, graph1=graph1, graph2=graph2, freq=freq)
+
+  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, summary=list(summary1=summary1, summary2=summary2), graph1=graph1, graph2=graph2, freq=freq)
 }
 
 colorize <- function(tag) {
   result <- tag
   
-  if (tag == 'female') {
-    result <- paste0("<span style='color: #ff00ff;'>", tag, "</span>")
+  if (!grepl('error', tag)) {
+    result <- paste0("<span class='", tag, "'>", tag, "</span>")
   }
-  else if (tag == 'male') {
-    result <- paste0("<span style='color: #0066ff;'>", tag, "</span>")
+  else {
+    result <- paste0("<span class='error'>", tag, "</span>")
   }
-  else if (grepl('error', tag)) {
-    result <- paste0("<span style='color: #ff0000;'>", tag, "</span>")
-  }
-  
+
   result
 }
 

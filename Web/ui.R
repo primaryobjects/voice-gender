@@ -11,7 +11,7 @@ shinyUI(fluidPage(
   conditionalPanel(condition='!output.json',
                    tags$head(tags$script(src = "script.js"),
                    			 tags$script(src = "google-analytics.js"),
-                         tags$style(HTML("a { font-weight: bold; } .shiny-output-error-validation { color: red; } .shiny-progress .progress { background-color: #ff00ff; } .fa-info { margin: 0 0 0 10px; cursor: pointer; font-size: 15px; color: #808080; } .fa-headphones { margin: 0 5px 0 2px; } .average-pitch { font-size: 18px; } .detail-summary { font-size: 16px; } .detail-summary .detail-header { font-size: 18px; margin: 0 0 10px 0; } .detail-summary span { font-weight: bold; } #summary { margin-top: 10px; margin-bottom: 80px; }"))
+                         tags$style(HTML("a { font-weight: bold; } .shiny-output-error-validation { color: red; } .shiny-progress .progress { background-color: #ff00ff; } .fa-info { margin: 0 0 0 10px; cursor: pointer; font-size: 15px; color: #808080; } .fa-headphones { margin: 0 5px 0 2px; } .average-pitch { font-size: 18px; } .detail-summary { font-size: 16px; } .detail-summary .detail-header { font-size: 18px; margin: 0 0 10px 0; } .detail-summary span { font-weight: bold; } #summary1 { margin-top: 10px; } #summary2 { margin-bottom: 80px; } .female { color: #ff00ff; } .male { color: #0066ff; } .error { color: #ff0000; }"))
                    ),
                    titlePanel('What is Your Voice Gender?'),
                    div(style='margin: 30px 0 0 0;'),
@@ -40,7 +40,7 @@ shinyUI(fluidPage(
      tabsetPanel(id='graphs',
        tabPanel('Frequency Graph', plotOutput("graph1", width=1000, height=500)),
        tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500)),
-       tabPanel('Summary', tableOutput('summary'))
+       tabPanel('Details', div(tableOutput('summary1'), tableOutput('summary2')))
      ),
      div(style='margin: 20px 0 0 0;')
    ),
