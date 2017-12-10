@@ -21,24 +21,30 @@ shinyUI(fluidPage(
      tags$input(type="hidden", name="business", value="kbecker@primaryobjects.com"),
      tags$input(type="hidden", name="item_name", value="Voice Gender App"),
      tags$input(type="hidden", name="item_number", value="VOICEGENDERAPP"),
-     tags$input(type="hidden", name="amount", value="19.95"),
+     tags$input(type="hidden", name="amount", value="9.95"),
+     # Set the terms of the regular subscription.
+     tags$input(type="hidden", name="a3", value="9.95"),
+     tags$input(type="hidden", name="p3", value="1"),
+     tags$input(type="hidden", name="t3", value="M"),
+     # Set recurring payments until canceled.
+     tags$input(type="hidden", name="src", value="1"),
      tags$input(type="hidden", name="no_shipping", value="1"),
      tags$input(type="hidden", name="return", value="https://primaryobjects.shinyapps.io/voice/?action=register"),
      tags$input(type="hidden", name="currency_code", value="USD"),
      tags$input(type="hidden", name="no_note", value="1"),
      tags$input(type="hidden", name="cancel_return", value="https://primaryobjects.shinyapps.io/voice/?action=cancel"),
-     tags$input(type="hidden", name="cmd", value="_xclick")
+     tags$input(type="hidden", name="cmd", value="_xclick-subscriptions")
    ),
 
    div(id="register-div",
      div(
        div(style="float: left;",
          p(class="intro-text",
-           "Register the Voice Gender App today!"
+           "Subscribe to the Voice Gender App today!"
          )
        ),
        div(id="info",
-         tags$i(class="fa fa-info-circle", style="float: left; margin: 2px 0 0 6px;", "data-toggle"="tooltip", "data-placement"="bottom", title="This app uses a method of artificial intelligence, called machine learning, to determine the gender of a voice. Registered users of the Voice Gender App receive an app license, priority email support, and priority suggestions for new features.")
+         tags$i(class="fa fa-info-circle", style="float: left; margin: 2px 0 0 6px;", "data-toggle"="tooltip", "data-placement"="bottom", title="This app uses a method of artificial intelligence, called machine learning, to determine the gender of a voice. Subscribed users of the Voice Gender App receive an app license, priority email support, and priority suggestions for new features.")
        )
      ),
      div(style="clear: both;"),
@@ -46,10 +52,10 @@ shinyUI(fluidPage(
      div(id="license-div",
        div(style="float: left",
          tags$select(id="lstLicense", class="form-control",
-           tags$option(value="Starter", "Starter License $9.95"),
-           tags$option(value="Personal", selected="true", "Personal License $19.95"),
-           tags$option(value="Professional", "Professional License $39.95"),
-           tags$option(value="Gold", "Gold License $99.95")
+           tags$option(value="Starter", "Starter License $9.95/mo"),
+           tags$option(value="Personal", selected="true", "Personal License $14.95/mo"),
+           tags$option(value="Professional", "Professional License $29.95/mo"),
+           tags$option(value="Gold", "Gold License $99.95/mo")
          )
        ),
        div(

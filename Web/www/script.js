@@ -63,6 +63,7 @@ function onLicense() {
     
     // Update price, item number, and item name.
     $("#m_OrderForm input[name='amount']").val(price);
+    $("#m_OrderForm input[name='a3']").val(price);
     $("#m_OrderForm input[name='item_number']").val(code);
     $("#m_OrderForm input[name='item_name']").val(licenseName);
 }
