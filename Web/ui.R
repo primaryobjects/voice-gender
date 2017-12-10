@@ -34,11 +34,11 @@ shinyUI(fluidPage(
      div(
        div(style="float: left;",
          p(class="intro-text",
-           "Register today to support the Voice Gender App!"
+           "Register the Voice Gender App today!"
          )
        ),
        div(id="info",
-         tags$i(class="fa fa-info-circle", style="float: left; margin: 2px 0 0 6px;", "data-toggle"="tooltip", "data-placement"="bottom", title="This app uses a method of artificial intelligence, called machine learning, to determine the gender of a voice. Unfortunately, it's not cheap to host this thing. Registered users of the Voice Gender App receive an app license, priority email support, and priority suggestions for new features.")
+         tags$i(class="fa fa-info-circle", style="float: left; margin: 2px 0 0 6px;", "data-toggle"="tooltip", "data-placement"="bottom", title="This app uses a method of artificial intelligence, called machine learning, to determine the gender of a voice. Registered users of the Voice Gender App receive an app license, priority email support, and priority suggestions for new features.")
        )
      ),
      div(style="clear: both;"),
