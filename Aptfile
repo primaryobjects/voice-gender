@@ -8,6 +8,4 @@ libmpg123-0
 libmpg123-dev
 libfftw3-3
 libfftw3-dev
-libsndfile1-dev_1.0.25-7ubuntu2.2_amd64.deb
-:repo:deb http://security.ubuntu.com/ubuntu trusty-security main
-:repo:deb http://archive.ubuntu.com/ubuntu/ trusty/main libfftw3-double3 amd64 3.3.3-7ubuntu3
+:repo:deb http://archive.ubuntu.com/ubuntu/ artful main universe trusty xenial
