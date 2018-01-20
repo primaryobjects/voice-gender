@@ -1,1 +1,4 @@
+fftw3
+fftw3-dev
+pkg-config
 libsndfile1-dev
