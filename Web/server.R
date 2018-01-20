@@ -4,7 +4,7 @@
 #}
 
 library(shiny)
-library(shinyjs)
+#library(shinyjs)
 library(RJSONIO)
 library(RCurl)
 library(warbleR)
