@@ -1,4 +1,6 @@
-fftw3
-fftw3-dev
-pkg-config
+libsndfile1
 libsndfile1-dev
+libmpg123-0
+libmpg123-dev
+libfftw3-3
+libfftw3-dev
