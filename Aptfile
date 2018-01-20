@@ -8,3 +8,4 @@ libmpg123-0
 libmpg123-dev
 libfftw3-3
 libfftw3-dev
+:repo:deb http:// xenial main
