@@ -8,4 +8,4 @@ libmpg123-0
 libmpg123-dev
 libfftw3-3
 libfftw3-dev
-:repo:deb http:// xenial main
+:repo:deb http://archive.ubuntu.com/ubuntu xenial/main amd64
