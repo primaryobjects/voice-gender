@@ -47,6 +47,14 @@ shiny:::handlerManager$addHandler(shiny:::routeHandler("/json", httpHandler) , "
 
 options(shiny.maxRequestSize=2*1024^2)
 
+disableActionButton <- function(id,session) {
+  session$sendCustomMessage(type="jsCode", list(code= paste("$('#",id,"').prop('disabled',true)", sep="")))
+}
+
+enableActionButton <- function(id,session) {
+  session$sendCustomMessage(type="jsCode", list(code= paste("$('#",id,"').prop('disabled',false)", sep="")))
+}
+
 shinyServer(function(input, output, session) {
   v <- reactiveValues(data = NULL)
   
@@ -63,10 +71,10 @@ shinyServer(function(input, output, session) {
       content <- '<div class="shiny-output-error-validation">Please select a .WAV file to upload.</div>'
     }
     else if (!is.null(inFile)) {
-      disable('btnUrl')
-      disable('url')
-      disable('file1')
-      
+      disableActionButton("btnUrl", session)
+      disableActionButton("url", session)
+      disableActionButton("file1", session)
+
       withProgress(message='Please wait ..', style='old', value=0, {
         result <- processFile(inFile, input$model)
         
@@ -80,9 +88,9 @@ shinyServer(function(input, output, session) {
       })
     }
     
-    enable('btnUrl')
-    enable('url')
-    enable('file1')
+    enableActionButton("btnUrl", session)
+    enableActionButton("url", session)
+    enableActionButton("file1", session)
     
     v$data <- content
   })
@@ -91,10 +99,10 @@ shinyServer(function(input, output, session) {
     content <- ''
     url <- input$url
     
-    disable('btnUrl')
-    disable('url')
-    disable('file1')
-
+    disableActionButton("btnUrl", session)
+    disableActionButton("url", session)
+    disableActionButton("file1", session)
+    
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
       # Extract url, removing any extraneous text.
       url <- regmatches(url, regexpr('(http|ftp|https)://([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?', url, perl=T))
@@ -115,9 +123,9 @@ shinyServer(function(input, output, session) {
       content <- '<div class="shiny-output-error-validation">Please enter a url to vocaroo or clyp.it.</div>'
     }
     
-    enable('btnUrl')
-    enable('url')
-    enable('file1')
+    enableActionButton("btnUrl", session)
+    enableActionButton("url", session)
+    enableActionButton("file1", session)
     
     v$data <- content
   })

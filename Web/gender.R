@@ -1,4 +1,4 @@
-#packages <- c('tuneR', 'seewave', 'gbm')
+#packages <- c('tuneR', 'seewave', 'gbm', 'xgboost', 'randomForest', 'e1071')
 #if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
 #  install.packages(setdiff(packages, rownames(installed.packages())))  
 #}
