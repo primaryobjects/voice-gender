@@ -1,6 +1,4 @@
-libsndfile1
-libsndfile1-dev
-libmpg123-0
-libmpg123-dev
-libfftw3-3
-libfftw3-dev
+http://security.ubuntu.com/ubuntu/pool/main/libs/libsndfile/libsndfile1_1.0.25-7ubuntu2_i386.deb
+http://security.ubuntu.com/ubuntu/pool/main/libs/libsndfile/libsndfile1-dev_1.0.25-7ubuntu2.2_i386.deb
+http://security.ubuntu.com/ubuntu/pool/universe/f/fftw3/libfftw3-3_3.3.3-7ubuntu3_i386.deb
+http://security.ubuntu.com/ubuntu/pool/main/f/fftw3/libfftw3-dev_3.3.3-7ubuntu3_i386.deb
