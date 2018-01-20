@@ -1,5 +1,9 @@
+libsndfile
+libsndfile-dev
 libsndfile1
 libsndfile1-dev
+libsndfile-devel
+libsndfile1-devel
 libmpg123-0
 libmpg123-dev
 libfftw3-3
