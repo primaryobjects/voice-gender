@@ -1,3 +1,5 @@
+:repo:deb http://security.ubuntu.com/ubuntu artful main
+:repo:deb http://security.ubuntu.com/ubuntu artful main universe
 libsndfile1
 libsndfile1-dev
 libmpg123-0
@@ -8,4 +10,3 @@ http://mirrors.kernel.org/ubuntu/pool/main/libs/libsndfile/libsndfile1_1.0.28-4_
 http://mirrors.kernel.org/ubuntu/pool/main/libs/libsndfile/libsndfile1-dev_1.0.28-4_i386.deb
 http://mirrors.kernel.org/ubuntu/pool/universe/f/fftw3/libfftw3-3_3.3.6p2-1_i386.deb
 http://mirrors.kernel.org/ubuntu/pool/main/f/fftw3/libfftw3-dev_3.3.6p2-1_i386.deb
-:repo:deb http://security.ubuntu.com/ubuntu artful main
