@@ -8,4 +8,21 @@ libmpg123-0
 libmpg123-dev
 libfftw3-3
 libfftw3-dev
-:repo:deb http://cz.archive.ubuntu.com/ubuntu artful main universe trusty xenial
+:repo:deb http://archive.ubuntu.com/ubuntu trusty main restricted
+deb-src http://archive.ubuntu.com/ubuntu trusty main restricted
+:repo:deb http://archive.ubuntu.com/ubuntu trusty-updates main restricted
+deb-src http://archive.ubuntu.com/ubuntu trusty-updates main restricted
+:repo:deb http://archive.ubuntu.com/ubuntu trusty universe
+deb-src http://archive.ubuntu.com/ubuntu trusty universe
+:repo:deb http://archive.ubuntu.com/ubuntu trusty-updates universe
+deb-src http://archive.ubuntu.com/ubuntu trusty-updates universe
+:repo:deb http://archive.ubuntu.com/ubuntu trusty multiverse
+deb-src http://archive.ubuntu.com/ubuntu trusty multiverse
+:repo:deb http://archive.ubuntu.com/ubuntu trusty-updates multiverse
+deb-src http://archive.ubuntu.com/ubuntu trusty-updates multiverse
+:repo:deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse
+deb-src http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse
+:repo:deb http://security.ubuntu.com/ubuntu trusty-security main
+deb-src http://security.ubuntu.com/ubuntu trusty-security main
+:repo:deb http://security.ubuntu.com/ubuntu trusty-security universe
+deb-src http://security.ubuntu.com/ubuntu trusty-security universe
