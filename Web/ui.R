@@ -24,55 +24,55 @@ shinyUI(fluidPage(
                    titlePanel('What is Your Voice Gender?'),
    mainPanel(width = '100%',
    
-   tags$form(action="https://www.paypal.com/cgi-bin/webscr", method="post", name="m_OrderForm", id="m_OrderForm",
-     tags$input(type="hidden", name="business", value="kbecker@primaryobjects.com"),
-     tags$input(type="hidden", name="item_name", value="Voice Gender App"),
-     tags$input(type="hidden", name="item_number", value="VOICEGENDERAPP"),
-     tags$input(type="hidden", name="amount", value="9.95"),
-     # Set the terms of the regular subscription.
-     tags$input(type="hidden", name="a3", value="9.95"),
-     tags$input(type="hidden", name="p3", value="1"),
-     tags$input(type="hidden", name="t3", value="M"),
-     # Set recurring payments until canceled.
-     tags$input(type="hidden", name="src", value="1"),
-     tags$input(type="hidden", name="no_shipping", value="1"),
-     tags$input(type="hidden", name="return", value="https://primaryobjects.shinyapps.io/voice/?action=register"),
-     tags$input(type="hidden", name="currency_code", value="USD"),
-     tags$input(type="hidden", name="no_note", value="1"),
-     tags$input(type="hidden", name="cancel_return", value="https://primaryobjects.shinyapps.io/voice/?action=cancel"),
-     tags$input(type="hidden", name="cmd", value="_xclick-subscriptions")
-   ),
-
-   div(id="register-div",
-     div(
-       div(style="float: left;",
-         p(class="intro-text",
-           "Subscribe to the Voice Gender App today!"
-         )
-       ),
-       div(id="info",
-         tags$i(class="fa fa-info-circle", style="float: left; margin: 2px 0 0 6px;", "data-toggle"="tooltip", "data-placement"="bottom", title="This app uses a method of artificial intelligence, called machine learning, to determine the gender of a voice. Subscribed users of the Voice Gender App receive an app license, priority email support, and priority suggestions for new features.")
-       )
-     ),
-     div(style="clear: both;"),
-     
-     div(id="license-div",
-       div(style="float: left",
-         tags$select(id="lstLicense", class="form-control",
-           tags$option(value="Starter", "Starter License $9.95/mo"),
-           tags$option(value="Personal", selected="true", "Personal License $14.95/mo"),
-           tags$option(value="Professional", "Professional License $29.95/mo"),
-           tags$option(value="Gold", "Gold License $99.95/mo")
-         )
-       ),
-       div(
-         a(href="#", class="btn btn-primary btn-lg submit buy",
-           tags$i(class="fa fa-unlock-alt"),
-           "Buy Now"
-         )
-       )
-     )
-   ),
+   # tags$form(action="https://www.paypal.com/cgi-bin/webscr", method="post", name="m_OrderForm", id="m_OrderForm",
+   #   tags$input(type="hidden", name="business", value="kbecker@primaryobjects.com"),
+   #   tags$input(type="hidden", name="item_name", value="Voice Gender App"),
+   #   tags$input(type="hidden", name="item_number", value="VOICEGENDERAPP"),
+   #   tags$input(type="hidden", name="amount", value="9.95"),
+   #   # Set the terms of the regular subscription.
+   #   tags$input(type="hidden", name="a3", value="9.95"),
+   #   tags$input(type="hidden", name="p3", value="1"),
+   #   tags$input(type="hidden", name="t3", value="M"),
+   #   # Set recurring payments until canceled.
+   #   tags$input(type="hidden", name="src", value="1"),
+   #   tags$input(type="hidden", name="no_shipping", value="1"),
+   #   tags$input(type="hidden", name="return", value="https://primaryobjects.shinyapps.io/voice/?action=register"),
+   #   tags$input(type="hidden", name="currency_code", value="USD"),
+   #   tags$input(type="hidden", name="no_note", value="1"),
+   #   tags$input(type="hidden", name="cancel_return", value="https://primaryobjects.shinyapps.io/voice/?action=cancel"),
+   #   tags$input(type="hidden", name="cmd", value="_xclick-subscriptions")
+   # ),
+   # 
+   # div(id="register-div",
+   #   div(
+   #     div(style="float: left;",
+   #       p(class="intro-text",
+   #         "Subscribe to the Voice Gender App today!"
+   #       )
+   #     ),
+   #     div(id="info",
+   #       tags$i(class="fa fa-info-circle", style="float: left; margin: 2px 0 0 6px;", "data-toggle"="tooltip", "data-placement"="bottom", title="This app uses a method of artificial intelligence, called machine learning, to determine the gender of a voice. Subscribed users of the Voice Gender App receive an app license, priority email support, and priority suggestions for new features.")
+   #     )
+   #   ),
+   #   div(style="clear: both;"),
+   #   
+   #   div(id="license-div",
+   #     div(style="float: left",
+   #       tags$select(id="lstLicense", class="form-control",
+   #         tags$option(value="Starter", "Starter License $9.95/mo"),
+   #         tags$option(value="Personal", selected="true", "Personal License $14.95/mo"),
+   #         tags$option(value="Professional", "Professional License $29.95/mo"),
+   #         tags$option(value="Gold", "Gold License $99.95/mo")
+   #       )
+   #     ),
+   #     div(
+   #       a(href="#", class="btn btn-primary btn-lg submit buy",
+   #         tags$i(class="fa fa-unlock-alt"),
+   #         "Buy Now"
+   #       )
+   #     )
+   #   )
+   # ),
      
    h4(id='main', 'Upload a .WAV file of your voice or enter a url from ', a(href='http://vocaroo.com', target='_blank', 'vocaroo.com'), 'or ', a(href='http://clyp.it', target='_blank', 'clyp.it'), ' to detect its gender.'),
    div(style='margin: 20px 0 0 0;'),
@@ -95,9 +95,9 @@ shinyUI(fluidPage(
    
    conditionalPanel(condition='output.content != null && output.content.indexOf("Please enter") == -1',
      tabsetPanel(id='graphs',
+       tabPanel('Details', div(tableOutput('summary1'), tableOutput('summary2'))),
        tabPanel('Frequency Graph', plotOutput("graph1", width=1000, height=500)),
-       tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500)),
-       tabPanel('Details', div(tableOutput('summary1'), tableOutput('summary2')))
+       tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500))
      ),
      div(style='margin: 20px 0 0 0;')
    ),
