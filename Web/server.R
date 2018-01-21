@@ -353,12 +353,7 @@ process <- function(path) {
     summary2$Model <- c(1:nrow(summary2))
     summary2 <- summary2[,c(ncol(summary2),1:(ncol(summary2)-1))]
 
-    graph1 <- renderImage({
-      outfile <- tempfile(fileext='.png')
-      
-      # Generate a png
-      png(outfile, width=1000, height=500)
-      
+    graph1 <- renderPlot({
       #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
       #content1$wave <- fir(content1$wave, from=80, to=280, output='Wave')
       
@@ -403,28 +398,15 @@ process <- function(path) {
 #      res <- autoc(content1$wave, threshold=5, fmin=50, fmax=300, plot=T, type='p', col='black', xlab='', ylab='', xaxt='n', yaxt='n')
       #legend(0, 8, legend=c('Fundamental frequency', 'Fundamental frequency', 'Dominant frequency'), col=c('green', 'black', 'red'), pch=c(19, 1, 19))
 #      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
-      
-      dev.off()
-      
-      list(src = outfile, alt = "Frequency Graph")
-    }, deleteFile = TRUE)
+    })
     
     incProgress(0.9, message = 'Building graph 2/2 ..')
-    graph2 <- renderImage({
-      outfile <- tempfile(fileext='.png')
-      
-      # Generate a png
-      png(outfile, width=1000, height=500)
-      
+    graph2 <- renderPlot({
       spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,ylim/1000), wl=wl)
       #par(new=TRUE)
       #dfreq(content1$wave, threshold=thresh, wl=wl, ylim=c(0, ylim/1000), type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), ylim=c(0, 10), type = "o", main = "Dominant Frequency Every 10 ms")
-      
-      dev.off()
-      
-      list(src = outfile, alt = "Spectogram")
-    }, deleteFile = TRUE)
+    })
   }, warning = function(e) {
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
