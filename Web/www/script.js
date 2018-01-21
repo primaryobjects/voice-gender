@@ -56,8 +56,8 @@ function onLicense() {
     var selectedValue = element.val(); // Get selected value.
     var selectedText = element.find('option:selected').text() // Get selected text including price.
     var d = 0; // Get any discount.
-    var price = (selectedText.match(/\$([0-9,.]+)/)[1] - d).toFixed(2); // Extract price value from text.
-    var license = selectedText.match(/^([\w]+)/)[1]; // Extract license name by first-word.
+    var price = selectedText.length ? (selectedText.match(/\$([0-9,.]+)/)[1] - d).toFixed(2) : 0; // Extract price value from text.
+    var license = selectedText.length ? selectedText.match(/^([\w]+)/)[1] : ''; // Extract license name by first-word.
     var licenseName = 'Voice Gender App, ' + license; // Setup full license name.
     var code = 'VOICEGENDERAPP' + license.substr(0, 3).toUpperCase(); // Setup product code, using first 3 letters in license, upper-case (PER, BUS).
     
