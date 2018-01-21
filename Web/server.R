@@ -354,7 +354,7 @@ process <- function(path) {
     summary2 <- summary2[,c(ncol(summary2),1:(ncol(summary2)-1))]
 
     graph1 <- renderImage({
-      outfile <- tempfile(fileext='.png')
+      outfile <- paste0('freq-', id, '.png') #tempfile(fileext='.png')
       
       # Generate a png
       png(outfile, width=1000, height=500)
@@ -407,7 +407,7 @@ process <- function(path) {
       dev.off()
       
       list(src = outfile, alt = "Frequency Graph")
-    }, deleteFile = TRUE)
+    }, deleteFile = F)
     
     incProgress(0.9, message = 'Building graph 2/2 ..')
     graph2 <- renderImage({
