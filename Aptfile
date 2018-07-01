@@ -8,4 +8,6 @@ libmpg123-0
 libmpg123-dev
 libfftw3-3
 libfftw3-dev
+libglu1-mesa-dev
+freeglut3-dev
 mesa-common-dev
