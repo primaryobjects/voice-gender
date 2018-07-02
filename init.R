@@ -1,5 +1,5 @@
 #my_packages = c("RJSONIO", "RCurl", "warbleR", "parallel", "tuneR", "seewave", "gbm", "xgboost", "randomForest", "e1071")
-my_packages = c("RJSONIO", "RCurl", "parallel", "tuneR", "seewave", "gbm", "xgboost", "randomForest", "e1071")
+my_packages = c("RJSONIO", "RCurl", "parallel", "tuneR", "seewave", "gbm", "xgboost", "randomForest", "e1071", "maps", "doParallel", "dtw", "fftw", "foreach", "iterators", "jpeg", "monitoR", "pbapply", "pbmcapply", "proxy", "rjson")
 
 install_if_missing = function(p) {
   if (p %in% rownames(installed.packages()) == FALSE) {
