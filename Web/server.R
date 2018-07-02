@@ -469,5 +469,6 @@ logEntry <- function(message, extra = NULL) {
 }
 
 restart <- function(e) {
-  system('touch ~/app-root/repo/R/restart.txt')
+  print(e)
+  #system('touch ~/app-root/repo/R/restart.txt')
 }
