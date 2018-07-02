@@ -9,5 +9,5 @@ install_if_missing = function(p) {
 
 invisible(sapply(my_packages, install_if_missing))
 
-packageurl <- "https://cran.r-project.org/src/contrib/Archive/warbleR/warbleR_1.1.8.tar.gz" #"https://cran.r-project.org/src/contrib/Archive/warbleR/warbleR_1.1.9.tar.gz"
+packageurl <- "https://cran.r-project.org/src/contrib/Archive/warbleR/warbleR_1.1.9.tar.gz"
 install.packages(packageurl, repos=NULL, type="source")
