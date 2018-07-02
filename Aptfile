@@ -11,3 +11,6 @@ libfftw3-dev
 libglu1-mesa-dev
 freeglut3-dev
 mesa-common-dev
+libpq-dev
+http://downloads.sourceforge.net/project/wkhtmltopdf/0.12.1/wkhtmltox-0.12.1_linux-precise-amd64.deb
+:repo:deb http://cz.archive.ubuntu.com/ubuntu artful main universe bionic
