@@ -55,12 +55,8 @@ enableActionButton <- function(id,session) {
   session$sendCustomMessage(type="jsCode", list(code= paste("$('#",id,"').prop('disabled',false)", sep="")))
 }
 
-gSession <- NA
-
 shinyServer(function(input, output, session) {
   v <- reactiveValues(data = NULL)
-  
-  gSession <- session
   
   observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
@@ -161,7 +157,7 @@ processFile <- function(inFile, model) {
   logEntry('File copied.', paste0('"id": "', id, '", inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
   
   # Process.
-  result <- process(filePath, gSession)
+  result <- process(filePath)
   
   unlink(path, recursive = T)
   
@@ -193,7 +189,7 @@ processUrl <- function(url, model) {
     download.file(url, fileName)
     
     # Process.        
-    result <- process(fileName, gSession)
+    result <- process(fileName)
     graph1 <- result$graph1
     graph2 <- result$graph2
     
@@ -269,7 +265,7 @@ processUrl <- function(url, model) {
       
       if (file.exists(wavFilePath)) {
         # Process.
-        result <- process(wavFilePath, gSession)
+        result <- process(wavFilePath)
         graph1 <- result$graph1
         graph2 <- result$graph2
         
@@ -309,7 +305,7 @@ processUrl <- function(url, model) {
   list(content=content, summary=summary, graph1=graph1, graph2=graph2)
 }
 
-process <- function(path, session) {
+process <- function(path) {
   content1 <- list(label = 'Sorry, an error occurred.', prob = 0, data = NULL)
   content2 <- list(label = '', prob = 0, data = NULL)
   content3 <- list(label = '', prob = 0, data = NULL)
@@ -325,18 +321,18 @@ process <- function(path, session) {
   logEntry('Classifying.', paste0('"id": "', id, '", "filePath": "', path, '"'))
   
   tryCatch({
-    incProgress(0.3, message = 'Processing voice ..', session)
+    incProgress(0.3, message = 'Processing voice ..')
     content1 <- gender(path, 1)
-    incProgress(0.4, message = 'Analyzing voice 1/4 ..', session)
+    incProgress(0.4, message = 'Analyzing voice 1/4 ..')
     content2 <- gender(path, 2, content1)
-    incProgress(0.5, message = 'Analyzing voice 2/4 ..', session)
+    incProgress(0.5, message = 'Analyzing voice 2/4 ..')
     content3 <- gender(path, 3, content1)
-    incProgress(0.6, message = 'Analyzing voice 3/4 ..', session)
+    incProgress(0.6, message = 'Analyzing voice 3/4 ..')
     content4 <- gender(path, 4, content1)
-    incProgress(0.7, message = 'Analyzing voice 4/4 ..', session)
+    incProgress(0.7, message = 'Analyzing voice 4/4 ..')
     content5 <- gender(path, 5, content1)
     
-    incProgress(0.8, message = 'Building graph 2/2 ..', session)
+    incProgress(0.8, message = 'Building graph 2/2 ..')
     
     wl <- 2048
     ylim <- 280
@@ -406,7 +402,7 @@ process <- function(path, session) {
       #      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
     })
     
-    incProgress(0.9, message = 'Building graph 2/2 ..', session)
+    incProgress(0.9, message = 'Building graph 2/2 ..')
     graph2 <- renderPlot({
       spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,ylim/1000), wl=wl)
       #par(new=TRUE)
