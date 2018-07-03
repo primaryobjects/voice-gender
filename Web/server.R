@@ -55,8 +55,12 @@ enableActionButton <- function(id,session) {
   session$sendCustomMessage(type="jsCode", list(code= paste("$('#",id,"').prop('disabled',false)", sep="")))
 }
 
+gSession <- NA
+
 shinyServer(function(input, output, session) {
   v <- reactiveValues(data = NULL)
+  
+  gSession <- session
   
   observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
@@ -66,7 +70,7 @@ shinyServer(function(input, output, session) {
     # be found.
     content <- ''
     inFile <- input$file1
-
+    
     if (grepl('.wav', tolower(inFile$name)) != TRUE) {
       content <- '<div class="shiny-output-error-validation">Please select a .WAV file to upload.</div>'
     }
@@ -74,7 +78,7 @@ shinyServer(function(input, output, session) {
       disableActionButton("btnUrl", session)
       disableActionButton("url", session)
       disableActionButton("file1", session)
-
+      
       withProgress(message='Please wait ..', style='old', value=0, {
         result <- processFile(inFile, input$model)
         
@@ -153,12 +157,12 @@ processFile <- function(inFile, model) {
   
   # Copy the temp file to our local folder.
   file.copy(inFile$datapath, filePath)
-
+  
   logEntry('File copied.', paste0('"id": "', id, '", inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
   
   # Process.
-  result <- process(filePath)
-
+  result <- process(filePath, gSession)
+  
   unlink(path, recursive = T)
   
   logEntry('Classification done.', paste0('"id": "', id, '", "filePath": "', path, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
@@ -189,7 +193,7 @@ processUrl <- function(url, model) {
     download.file(url, fileName)
     
     # Process.        
-    result <- process(fileName)
+    result <- process(fileName, gSession)
     graph1 <- result$graph1
     graph2 <- result$graph2
     
@@ -204,7 +208,7 @@ processUrl <- function(url, model) {
     # Format url for api.
     url <- gsub('www.clyp.it', 'api.clyp.it', url)
     url <- gsub('/clyp.it', '/api.clyp.it', url)
-
+    
     # Download json.
     json <- getURL(url)
     if (grepl('mp3url', tolower(json))) {
@@ -265,7 +269,7 @@ processUrl <- function(url, model) {
       
       if (file.exists(wavFilePath)) {
         # Process.
-        result <- process(wavFilePath)
+        result <- process(wavFilePath, gSession)
         graph1 <- result$graph1
         graph2 <- result$graph2
         
@@ -305,7 +309,7 @@ processUrl <- function(url, model) {
   list(content=content, summary=summary, graph1=graph1, graph2=graph2)
 }
 
-process <- function(path) {
+process <- function(path, session) {
   content1 <- list(label = 'Sorry, an error occurred.', prob = 0, data = NULL)
   content2 <- list(label = '', prob = 0, data = NULL)
   content3 <- list(label = '', prob = 0, data = NULL)
@@ -313,24 +317,26 @@ process <- function(path) {
   content5 <- list(label = '', prob = 0, data = NULL)
   graph1 <- NULL
   graph2 <- NULL
+  summary1 <- data.frame()
+  summary2 <- data.frame()
   freq <- list(minf = NULL, meanf = NULL, maxf = NULL)
   
   id <- gsub('.*temp(\\d+)\\.wav', '\\1', path)
   logEntry('Classifying.', paste0('"id": "', id, '", "filePath": "', path, '"'))
   
   tryCatch({
-    incProgress(0.3, message = 'Processing voice ..')
+    incProgress(0.3, message = 'Processing voice ..', session)
     content1 <- gender(path, 1)
-    incProgress(0.4, message = 'Analyzing voice 1/4 ..')
+    incProgress(0.4, message = 'Analyzing voice 1/4 ..', session)
     content2 <- gender(path, 2, content1)
-    incProgress(0.5, message = 'Analyzing voice 2/4 ..')
+    incProgress(0.5, message = 'Analyzing voice 2/4 ..', session)
     content3 <- gender(path, 3, content1)
-    incProgress(0.6, message = 'Analyzing voice 3/4 ..')
+    incProgress(0.6, message = 'Analyzing voice 3/4 ..', session)
     content4 <- gender(path, 4, content1)
-    incProgress(0.7, message = 'Analyzing voice 4/4 ..')
+    incProgress(0.7, message = 'Analyzing voice 4/4 ..', session)
     content5 <- gender(path, 5, content1)
     
-    incProgress(0.8, message = 'Building graph 2/2 ..')
+    incProgress(0.8, message = 'Building graph 2/2 ..', session)
     
     wl <- 2048
     ylim <- 280
@@ -341,7 +347,7 @@ process <- function(path) {
     freq$minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
     freq$meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
     freq$maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
-
+    
     summary1 <- data.frame(Duration=paste(duration(content1$wave), 's'), Sampling.Rate=content1$wave@samp.rate, Average.Frequency=paste(freq$meanf, 'hz'), Min.Frequency=paste(freq$minf, 'hz'), Max.Frequency=paste(freq$maxf, 'hz'))
     
     summary2 <- data.frame()
@@ -352,7 +358,7 @@ process <- function(path) {
     summary2 <- rbind(summary2, data.frame(Type='Stacked', Label=content5$label, Threshold=paste0(round(content5$prob * 100), '%')))
     summary2$Model <- c(1:nrow(summary2))
     summary2 <- summary2[,c(ncol(summary2),1:(ncol(summary2)-1))]
-
+    
     graph1 <- renderPlot({
       #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
       #content1$wave <- fir(content1$wave, from=80, to=280, output='Wave')
@@ -390,33 +396,35 @@ process <- function(path) {
       text(subx, suby, labels = sublabels)
       
       legend(0.5, 0.05, legend=c(paste('Min frequency', freq$minf, 'hz'), paste('Average frequency', freq$meanf, 'hz'), paste('Max frequency', freq$maxf, 'hz')), text.col=c('black', 'darkgreen', 'black'), pch=c(19, 19, 19))
-
+      
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), threshold=5, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
-#      par(new=TRUE)
+      #      par(new=TRUE)
       #fund(wav, threshold=6, fmax=8000, type="l", col="green", lwd=2, xlab='', xaxt='n', yaxt='n')
       #par(new=TRUE)
-#      res <- autoc(content1$wave, threshold=5, fmin=50, fmax=300, plot=T, type='p', col='black', xlab='', ylab='', xaxt='n', yaxt='n')
+      #      res <- autoc(content1$wave, threshold=5, fmin=50, fmax=300, plot=T, type='p', col='black', xlab='', ylab='', xaxt='n', yaxt='n')
       #legend(0, 8, legend=c('Fundamental frequency', 'Fundamental frequency', 'Dominant frequency'), col=c('green', 'black', 'red'), pch=c(19, 1, 19))
-#      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
+      #      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
     })
     
-    incProgress(0.9, message = 'Building graph 2/2 ..')
+    incProgress(0.9, message = 'Building graph 2/2 ..', session)
     graph2 <- renderPlot({
       spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,ylim/1000), wl=wl)
       #par(new=TRUE)
       #dfreq(content1$wave, threshold=thresh, wl=wl, ylim=c(0, ylim/1000), type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), ylim=c(0, 10), type = "o", main = "Dominant Frequency Every 10 ms")
     })
-  }, warning = function(e) {
-    if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
-      restart(e)
-    }
+    #}, warning = function(e) {
+    #  print(e)
+    #  if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
+    #    restart(e)
+    #  }
   }, error = function(e) {
+    print(e)
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
     }
   })
-
+  
   list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, summary=list(summary1=summary1, summary2=summary2), graph1=graph1, graph2=graph2, freq=freq)
 }
 
@@ -429,7 +437,7 @@ colorize <- function(tag) {
   else {
     result <- paste0("<span class='error'>", tag, "</span>")
   }
-
+  
   result
 }
 
@@ -439,7 +447,7 @@ formatResult <- function(result) {
     pitchColor <- '#0000ff'
   }
   html <- paste0('Overall Result: <span style="font-weight: bold;">', colorize(result$content5$label), '</span> <span class="average-pitch"><i class="fa fa-headphones" aria-hidden="true" title="Average Pitch" style="color: ', pitchColor, '"></i>', result$freq$meanf, ' hz</span><hr>')
-
+  
   html <- paste0(html, '<div class="detail-summary">')
   html <- paste0(html, '<div class="detail-header">Details</div>')
   html <- paste0(html, 'Model 1: ', colorize(result$content1$label), '<i class="fa fa-info" aria-hidden="true" title="Support Vector Machine (SVM), Threshold value: ', round(result$content1$prob * 100), '%"></i>,  ')
