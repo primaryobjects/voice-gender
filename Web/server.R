@@ -1,7 +1,10 @@
 #packages <- c('shiny', 'shinyjs', 'RJSONIO', 'RCurl', 'warbleR', 'tuneR', 'seewave', 'gbm')
 #if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-#install.packages(setdiff(packages, rownames(installed.packages())))  
+#install.packages(setdiff(packages, rownames(installed.packages())))
 #}
+
+# In Linux, also required:
+# sudo apt-get install libcurl4-openssl-dev cmake r-base-core fftw3 fftw3-dev pkg-config
 
 library(shiny)
 library(shinyjs)
@@ -26,18 +29,18 @@ httpHandler = function(req) {
     # handle POST requests here
     reqInput <- req$rook.input
     print(reqInput)
-    
+
     # read a chuck of size 2^16 bytes, should suffice for our test
     #buf <- reqInput$read(2^16)
-    
+
     # simply dump the HTTP request (input) stream back to client
     #shiny:::httpResponse(
     #  200, 'text/plain', buf
     #)
-  }  
-  
+  }
+
   message = list(value = "hello")
-  
+
   return(list(status = 200L,
               headers = list('Content-Type' = 'application/json'),
               body = toJSON(message)))
@@ -49,7 +52,7 @@ options(shiny.maxRequestSize=2*1024^2)
 
 shinyServer(function(input, output, session) {
   v <- reactiveValues(data = NULL)
-  
+
   observeEvent(input$file1, {
     # input$file1 will be NULL initially. After the user selects
     # and uploads a file, it will be a data frame with 'name',
@@ -66,10 +69,10 @@ shinyServer(function(input, output, session) {
       disable('btnUrl')
       disable('url')
       disable('file1')
-      
+
       withProgress(message='Please wait ..', style='old', value=0, {
         result <- processFile(inFile, input$model)
-        
+
         content <- result$content
         if (!is.null(result$graph1)) {
           output$summary1 <- renderTable(result$summary$summary1)
@@ -79,18 +82,18 @@ shinyServer(function(input, output, session) {
         }
       })
     }
-    
+
     enable('btnUrl')
     enable('url')
     enable('file1')
-    
+
     v$data <- content
   })
-  
+
   observeEvent(input$btnUrl, {
     content <- ''
     url <- input$url
-    
+
     disable('btnUrl')
     disable('url')
     disable('file1')
@@ -98,10 +101,10 @@ shinyServer(function(input, output, session) {
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
       # Extract url, removing any extraneous text.
       url <- regmatches(url, regexpr('(http|ftp|https)://([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?', url, perl=T))
-      
+
       withProgress(message='Please wait ..', style='old', value=0, {
         result <- processUrl(url, input$model)
-        
+
         content <- result$content
         if (!is.null(result$graph1)) {
           output$summary1 <- renderTable(result$summary$summary1)
@@ -114,14 +117,14 @@ shinyServer(function(input, output, session) {
     else {
       content <- '<div class="shiny-output-error-validation">Please enter a url to vocaroo or clyp.it.</div>'
     }
-    
+
     enable('btnUrl')
     enable('url')
     enable('file1')
-    
+
     v$data <- content
   })
-  
+
   output$content <- eventReactive(v$data, {
     HTML(v$data)
   })
@@ -131,109 +134,100 @@ processFile <- function(inFile, model) {
   # Create a unique filename.
   id <- sample(1:100000, 1)
   filePath <- paste0('./temp', sample(1:100000, 1), '/temp', id, '.wav')
-  
+
   logEntry('File uploaded.', paste0('"id": "', id, '", "inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
-  
+
   currentPath <- getwd()
   fileName <- basename(filePath)
   path <- dirname(filePath)
-  
+
   # Create directory.
   dir.create(path)
-  
+
   incProgress(0.1, message = 'Uploading clip ..')
-  
+
   # Copy the temp file to our local folder.
   file.copy(inFile$datapath, filePath)
 
   logEntry('File copied.', paste0('"id": "', id, '", inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
-  
+
   # Process.
   result <- process(filePath)
 
   unlink(path, recursive = T)
-  
+
   logEntry('Classification done.', paste0('"id": "', id, '", "filePath": "', path, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
-  
+
   list(content=formatResult(result), summary=result$summary, graph1=result$graph1, graph2=result$graph2)
 }
 
 processUrl <- function(url, model) {
   origUrl <- url
-  
+
   # Create a unique id for the file.
   id <- sample(1:100000, 1)
-  
-  if (grepl('vocaroo', tolower(url))) {
-    # Create a unique filename.
-    fileName <- paste0('temp', id, '.wav')
-    
-    # Get apiId from url.
-    apiId <- gsub('.+/i/(\\w+)', '\\1', url)
-    url <- paste0('http://vocaroo.com/media_command.php?media=', apiId, '&command=download_wav')
-    print(paste('Downloading', url, sep=' '))
-    
-    incProgress(0.1, message = 'Downloading clip ..')
-    
-    logEntry('Downloading url.', paste0('"id": "', id, '", "url": "', origUrl, '", "downloadUrl": "', url, '", "fileName": "', fileName, '"'))
-    
-    # Download wav file.
-    download.file(url, fileName)
-    
-    # Process.        
-    result <- process(fileName)
-    graph1 <- result$graph1
-    graph2 <- result$graph2
-    
-    logEntry('Classification done.', paste0('"id": "', id, '", "url": "', origUrl, '", "filePath": "', fileName, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
-    
-    # Delete temp file.
-    file.remove(fileName)
-    
-    content <- formatResult(result)
-  }
-  else if (grepl('clyp.it', tolower(url))) {
-    # Format url for api.
-    url <- gsub('www.clyp.it', 'api.clyp.it', url)
-    url <- gsub('/clyp.it', '/api.clyp.it', url)
 
-    # Download json.
-    json <- getURL(url)
-    if (grepl('mp3url', tolower(json))) {
-      data <- fromJSON(json)
-      mp3 <- data$Mp3Url
-      
+  isVocaroo = grepl('vocaroo', tolower(url))
+  isClyp = grepl('clyp.it', tolower(url))
+
+  if (isVocaroo || isClyp) {
+    currentPath <- getwd()
+    mp3 <- ''
+
+    if (isClyp) {
+      # Format url for api.
+      url <- gsub('www.clyp.it', 'api.clyp.it', url)
+      url <- gsub('/clyp.it', '/api.clyp.it', url)
+
+      # Download json.
+      json <- getURL(url)
+      if (grepl('mp3url', tolower(json))) {
+        data <- fromJSON(json)
+        mp3 <- data$Mp3Url
+      }
+    }
+    else {
+      # Extract the last part of the url after the slash.
+      parts <- strsplit(url, '/')
+      if (lengths(parts) > 0) {
+        id <- parts[[1]][lengths(parts)]
+        if (nchar(id) > 0) {
+          mp3 <- paste0('https://media1.vocaroo.com/mp3/', id)
+        }
+      }
+    }
+
+    if (nchar(mp3) > 0) {
       # Create a unique filename.
       mp3FilePath <- paste0('./temp', id, '/temp', id, '.mp3')
       wavFilePath <- gsub('.mp3', '.wav', mp3FilePath)
-      
-      currentPath <- getwd()
+
       fileName <- basename(mp3FilePath)
       path <- dirname(mp3FilePath)
-      
+
       # Create directory.
       dir.create(path)
-      
+
       incProgress(0.1, message = 'Downloading clip ..')
-      
+
       logEntry('Downloading url.', paste0('"id": "', id, '", "url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
-      
+
       # Download mp3 file.
       download.file(mp3, mp3FilePath, mode='wb')
-      
+
       print(mp3)
       print(path)
       print(mp3FilePath)
       print(wavFilePath)
       print(fileName)
-      
+
       # Set directory to read file.
       setwd(path)
-      
+
       incProgress(0.2, message = 'Converting mp3 to wav ..')
-      
+
       logEntry('Converting mp3 to wav.', paste0('"id": "', id, '", "url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
-      
+
       # Convert mp3 to wav (does not always work due to bug with tuneR).
       tryCatch({
         # Use mcparallel to fork the process and hopefully recover from any R session crash.
@@ -246,54 +240,63 @@ processUrl <- function(url, model) {
           try(mp32wav())
         }
       })
-      
+
       # Restore path.
       setwd(currentPath)
-      
+
       if (!file.exists(wavFilePath)) {
         r <- readMP3(mp3FilePath)
-        writeWave(r, wavFilePath, extensible=FALSE)        
+        writeWave(r, wavFilePath, extensible=FALSE)
       }
-      
+
       if (file.exists(wavFilePath)) {
         # Process.
         result <- process(wavFilePath)
         graph1 <- result$graph1
         graph2 <- result$graph2
-        
+
         logEntry('Classification done.', paste0('"id": "', id, '", "url": "', origUrl, '", "filePath": "', wavFilePath, '", "class": "', result$content5$label, '", "prob": "', round(result$content5$prob * 100), '"'))
-        
+
         content <- formatResult(result)
         summary <- result$summary
       }
       else {
-        content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
+        # Invalid url.
+        content <- paste0('<div class="shiny-output-error-validation">Error accessing Vocaroo or Clyp.it URL. Please use the format https://vocaroo.com/12345</div>')
         graph1 <- NULL
         graph2 <- NULL
-        
-        logEntry('Classification error. Error converting mp3 to wav.', paste0('"id": "', id, '", "url": "', origUrl, '"'))
+
+        logEntry('Classification error. Error accessing url', paste0('"id": "', id, '", "url": "', origUrl, '", "apiUrl": "', url, '"'))
       }
-      
-      # Delete temp folder.
-      unlink(path, recursive=T)
-      
-      # Delete extraneous temp file.
-      wavFileName <- gsub('.mp3', '.wav', fileName, fixed=T)
-      fileNameNoExt <- gsub('.mp3', '', fileName, fixed=T)
-      tempFilePath <- paste0(fileNameNoExt, wavFileName)
-      unlink(tempFilePath)
-      
     }
     else {
-      # 404 Not Found. Maybe a private clyp.it url?
-      content <- paste0('<div class="shiny-output-error-validation">Error accessing clyp.it URL (404). Check if the audio clip is set to Private in your clyp.it account.</div>')
+      content <- paste0('<div class="shiny-output-error-validation">Error converting mp3 to wav.<br>Try converting it manually with <a href="http://media.io" target="_blank">media.io</a>.<br>Your mp3 can be downloaded <a href="', mp3, '">here</a>.</div>')
       graph1 <- NULL
       graph2 <- NULL
-      
-      logEntry('Classification error. Error accessing clyp.it url', paste0('"id": "', id, '", "url": "', origUrl, '", "apiUrl": "', url, '"'))
+
+      logEntry('Classification error. Error converting mp3 to wav.', paste0('"id": "', id, '", "url": "', origUrl, '"'))
     }
+
+    # Restore working directory and delete temp folder.
+    setwd(currentPath)
+    unlink(path, recursive=T)
+
+    # Delete extraneous temp file.
+    wavFileName <- gsub('.mp3', '.wav', fileName, fixed=T)
+    fileNameNoExt <- gsub('.mp3', '', fileName, fixed=T)
+    tempFilePath <- paste0(fileNameNoExt, wavFileName)
+
+    unlink(tempFilePath)
   }
-  
+  else {
+    # 404 Not Found. Maybe a private clyp.it url?
+    content <- paste0('<div class="shiny-output-error-validation">Error accessing Vocaroo or Clyp.it URL (404). Please use the format https://vocaroo.com/12345</div>')
+    graph1 <- NULL
+    graph2 <- NULL
+
+    logEntry('Classification error. Error accessing url', paste0('"id": "', id, '", "url": "', origUrl, '", "apiUrl": "', url, '"'))
+  }
+
   list(content=content, summary=summary, graph1=graph1, graph2=graph2)
 }
 
@@ -305,11 +308,14 @@ process <- function(path) {
   content5 <- list(label = '', prob = 0, data = NULL)
   graph1 <- NULL
   graph2 <- NULL
+  summary1 <- data.frame()
+  summary2 <- data.frame()
+
   freq <- list(minf = NULL, meanf = NULL, maxf = NULL)
-  
+
   id <- gsub('.*temp(\\d+)\\.wav', '\\1', path)
   logEntry('Classifying.', paste0('"id": "', id, '", "filePath": "', path, '"'))
-  
+
   tryCatch({
     incProgress(0.3, message = 'Processing voice ..')
     content1 <- gender(path, 1)
@@ -321,13 +327,13 @@ process <- function(path) {
     content4 <- gender(path, 4, content1)
     incProgress(0.7, message = 'Analyzing voice 4/4 ..')
     content5 <- gender(path, 5, content1)
-    
+
     incProgress(0.8, message = 'Building graph 2/2 ..')
-    
+
     wl <- 2048
     ylim <- 280
     thresh <- 5
-    
+
     # Calculate fundamental frequencies.
     freqs <- fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), threshold=thresh, plot=F, wl=wl)
     freq$minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
@@ -335,8 +341,7 @@ process <- function(path) {
     freq$maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
 
     summary1 <- data.frame(Duration=paste(duration(content1$wave), 's'), Sampling.Rate=content1$wave@samp.rate, Average.Frequency=paste(freq$meanf, 'hz'), Min.Frequency=paste(freq$minf, 'hz'), Max.Frequency=paste(freq$maxf, 'hz'))
-    
-    summary2 <- data.frame()
+
     summary2 <- rbind(summary2, data.frame(Type='Support Vector Machine (SVM)', Label=content1$label, Threshold=paste0(round(content1$prob * 100), '%')))
     summary2 <- rbind(summary2, data.frame(Type='XGBoost Small', Label=content2$label, Threshold=paste0(round(content2$prob * 100), '%')))
     summary2 <- rbind(summary2, data.frame(Type='Tuned Random Forest', Label=content3$label, Threshold=paste0(round(content3$prob * 100), '%')))
@@ -348,39 +353,39 @@ process <- function(path) {
     graph1 <- renderPlot({
       #content1$wave <- ffilter(content1$wave, from=0, to=400, output='Wave')
       #content1$wave <- fir(content1$wave, from=80, to=280, output='Wave')
-      
+
       # spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,0.5))
       # par(new=TRUE)
-      # 
+      #
       # freqs <- dfreq(content1$wave, at = seq(0.0, duration(content1$wave), by = 0.5), type = "o", xlim = c(0.0, duration(content1$wave)), ylim=c(0, 0.5), main = "a measure every 10 ms", plot=F)
       # dfreq(content1$wave, at = seq(0.0, duration(content1$wave), by = 0.5), type = "o", xlim = c(0.0, duration(content1$wave)), ylim=c(0, 0.5), main = "a measure every 10 ms")
-      # 
+      #
       # x <- freqs[,1]
       # y <- freqs[,2] + 0.01
       # labels <- freqs[,2]
-      # 
+      #
       # subx <- x[seq(1, length(x), 3)]
       # suby <- y[seq(1, length(y), 3)]
       # sublabels <- paste(labels[seq(1, length(labels), 3)] * 1000, 'hz')
       # text(subx, suby, labels = sublabels)
-      # 
+      #
       # minf <- round(min(freqs[,2], na.rm = T)*1000, 0)
       # meanf <- round(mean(freqs[,2], na.rm = T)*1000, 0)
       # maxf <- round(max(freqs[,2], na.rm = T)*1000, 0)
       # text(duration(content1$wave) / 2, 0.47, labels = paste('Minimum Frequency = ', minf, 'hz'))
       # text(duration(content1$wave) / 2, 0.46, labels = paste('Avgerage Frequency = ', meanf, 'hz'))
       # text(duration(content1$wave) / 2, 0.45, labels = paste('Maximum Frequency = ', maxf, 'hz'))
-      
+
       fund(content1$wave, fmax=ylim, ylim=c(0, ylim/1000), type='l', threshold=thresh, col='red', wl=wl)
       x <- freqs[,1]
       y <- freqs[,2] + 0.01
       labels <- freqs[,2]
-      
+
       subx <- x[seq(1, length(x), 4)]
       suby <- y[seq(1, length(y), 4)]
       sublabels <- paste(round(labels[seq(1, length(labels), 4)] * 1000, 0), 'hz')
       text(subx, suby, labels = sublabels)
-      
+
       legend(0.5, 0.05, legend=c(paste('Min frequency', freq$minf, 'hz'), paste('Average frequency', freq$meanf, 'hz'), paste('Max frequency', freq$maxf, 'hz')), text.col=c('black', 'darkgreen', 'black'), pch=c(19, 19, 19))
 
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), threshold=5, type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
@@ -391,7 +396,7 @@ process <- function(path) {
       #legend(0, 8, legend=c('Fundamental frequency', 'Fundamental frequency', 'Dominant frequency'), col=c('green', 'black', 'red'), pch=c(19, 1, 19))
 #      legend(0, 8, legend=c('Fundamental frequency', 'Dominant frequency'), col=c('black', 'red'), pch=c(1, 19))
     })
-    
+
     incProgress(0.9, message = 'Building graph 2/2 ..')
     graph2 <- renderPlot({
       spectro(content1$wave, ovlp=40, zp=8, scale=FALSE, flim=c(0,ylim/1000), wl=wl)
@@ -400,10 +405,12 @@ process <- function(path) {
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), ylim=c(0, 10), type = "o", main = "Dominant Frequency Every 10 ms")
     })
   }, warning = function(e) {
+    print(paste0('Warning in method process(): ', e))
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
     }
   }, error = function(e) {
+    print(paste0('Error in method process(): ', e))
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
     }
@@ -414,7 +421,7 @@ process <- function(path) {
 
 colorize <- function(tag) {
   result <- tag
-  
+
   if (!grepl('error', tag)) {
     result <- paste0("<span class='", tag, "'>", tag, "</span>")
   }
@@ -440,7 +447,7 @@ formatResult <- function(result) {
   html <- paste0(html, 'Model 4: ', colorize(result$content4$label), '<i class="fa fa-info" aria-hidden="true" title="XGBoost Large, Threshold value: ', round(result$content4$prob * 100), '%"></i>,  ')
   html <- paste0(html, 'Model 5: ', colorize(result$content5$label), '<i class="fa fa-info" aria-hidden="true" title="Stacked, Threshold value: ', round(result$content5$prob * 100), '%"></i>')
   html <- paste0(html, '</div>')
-  
+
   html
 }
 
@@ -448,13 +455,13 @@ logEntry <- function(message, extra = NULL) {
   try(
     if (!is.null(message) && nchar(message) > 0) {
       body <- paste0('{"application": "Voice Gender", "message": "', message, '"')
-      
+
       if (!is.null(extra)) {
         body <- paste0(body, ', ', extra)
       }
-      
+
       body <- paste0(body, '}')
-      
+
       getURL(paste0('http://logs-01.loggly.com/inputs/', token), postfields=body)
     }
   )
