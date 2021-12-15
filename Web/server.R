@@ -98,7 +98,7 @@ shinyServer(function(input, output, session) {
     disable('url')
     disable('file1')
 
-    if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('clyp.it', url))) {
+    if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('voca.ro', url) || grepl('clyp.it', url))) {
       # Extract url, removing any extraneous text.
       url <- regmatches(url, regexpr('(http|ftp|https)://([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?', url, perl=T))
 
@@ -167,7 +167,7 @@ processUrl <- function(url, model) {
   # Create a unique id for the file.
   id <- sample(1:100000, 1)
 
-  isVocaroo = grepl('vocaroo', tolower(url))
+  isVocaroo = grepl('vocaroo', tolower(url)) || grepl('voca.ro', tolower(url))
   isClyp = grepl('clyp.it', tolower(url))
 
   if (isVocaroo || isClyp) {
@@ -404,11 +404,6 @@ process <- function(path) {
       #dfreq(content1$wave, threshold=thresh, wl=wl, ylim=c(0, ylim/1000), type="l", col="red", lwd=2, xlab='', xaxt='n', yaxt='n')
       #dfreq(content1$wave, at=seq(0, duration(content1$wave) - 0.1, by=0.1), ylim=c(0, 10), type = "o", main = "Dominant Frequency Every 10 ms")
     })
-  }, warning = function(e) {
-    print(paste0('Warning in method process(): ', e))
-    if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
-      restart(e)
-    }
   }, error = function(e) {
     print(paste0('Error in method process(): ', e))
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
