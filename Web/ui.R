@@ -1,7 +1,7 @@
 ## Including the required R packages.
 #packages <- c('shiny', 'shinyjs')
 #if (length(setdiff(packages, rownames(installed.packages()))) > 0) {
-#  install.packages(setdiff(packages, rownames(installed.packages())))  
+#  install.packages(setdiff(packages, rownames(installed.packages())))
 #}
 
 library(shiny)
@@ -16,7 +16,7 @@ shinyUI(fluidPage(
                    titlePanel('What is Your Voice Gender?'),
    mainPanel(width = '100%',
    useShinyjs(),
-   
+
    tags$form(action="https://www.paypal.com/cgi-bin/webscr", method="post", name="m_OrderForm", id="m_OrderForm",
      tags$input(type="hidden", name="business", value="kbecker@primaryobjects.com"),
      tags$input(type="hidden", name="item_name", value="Voice Gender App"),
@@ -48,7 +48,7 @@ shinyUI(fluidPage(
        )
      ),
      div(style="clear: both;"),
-     
+
      div(id="license-div",
        div(style="float: left",
          tags$select(id="lstLicense", class="form-control",
@@ -66,42 +66,42 @@ shinyUI(fluidPage(
        )
      )
    ),
-     
-   h4(id='main', 'Upload a .WAV file of your voice or enter a url from ', a(href='http://vocaroo.com', target='_blank', 'vocaroo.com'), 'or ', a(href='http://clyp.it', target='_blank', 'clyp.it'), ' to detect its gender.'),
+
+   h4(id='main', 'Upload a .WAV file of your voice or enter a url from ', a(href='http://vocaroo.com', target='_blank', 'vocaroo.com'), ' to detect its gender.'),
    div(style='margin: 20px 0 0 0;'),
-   
+
    inputPanel(
      div(id='uploadDiv', class='', style='height: 120px; border-right: 1px solid #ccc;',
          fileInput('file1', 'Choose WAV File', accept = c('audio/wav'), width = '100%')
      ),
      div(id='urlDiv', class='',
-         strong('Url (vocaroo or clyp.it)'),
+         strong('Vocaroo Url:'),
          textInput('url', NULL, width = '100%'),
          actionButton('btnUrl', 'Load Url', class='btn-primary', icon=icon('cloud'))
      ),
      div('Please be patient after uploading or clicking submit.')
    ),
-   
+
    div(style='margin: 20px 0 0 0;'),
    div(id='result', style='font-size: 22px;', htmlOutput('content')),
    div(style='margin: 20px 0 0 0;'),
-   
+
    conditionalPanel(condition='output.content != null && output.content.indexOf("Please enter") == -1',
      tabsetPanel(id='graphs',
+       tabPanel('Details', div(tableOutput('summary1'), tableOutput('summary2'))),
        tabPanel('Frequency Graph', plotOutput("graph1", width=1000, height=500)),
-       tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500)),
-       tabPanel('Details', div(tableOutput('summary1'), tableOutput('summary2')))
+       tabPanel('Spectrogram', plotOutput("graph2", width=1000, height=500))
      ),
      div(style='margin: 20px 0 0 0;')
    ),
-  
+
    h4('Voice Tips and Tricks'),
    p('- Pitch, combined with intonation (the rise and fall of the voice in speaking), are important factors in classifying male versus female.'),
    p('- Male classified voices tend to be low and within a narrow range of pitch (ie., relatively monotone).'),
    p('- Female classified voices tend to be higher in pitch and fluctuate frequency to a much greater degree.'),
    p('- Female classified voices often rise in frequency at the end of a sentence, as if asking a question.'),
    div(style='margin: 20px 0 0 0;'),
-   
+
    h4('How does it work?'),
    p('This application uses a method of artificial intelligence, called machine learning, to determine the gender of a voice.'),
    p('The program was trained on a dataset of 3,168 voice samples, split between male and female voices. By analyzing the acoustic properties of the voices, the program is able to achieve 89% accuracy on the test set.'),
