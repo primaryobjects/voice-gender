@@ -11,15 +11,15 @@ The web version is developed with R Shiny.
 
 ### Results of an analysis
 
-![Homepage and analysis.](images/screenshot1.png)
+> ![Homepage and analysis.](images/screenshot1.png)
 
 ### Frequency graph
 
-![Frequency graph.](images/screenshot2.png)
+> ![Frequency graph.](images/screenshot2.png)
 
 ### Spectrogram
 
-![Spectrogram.](images/screenshot3.png)
+> ![Spectrogram.](images/screenshot3.png)
 
 ## Installation
 
