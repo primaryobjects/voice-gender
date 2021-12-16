@@ -5,7 +5,7 @@ Gender Recognition by Voice and Speech Analysis
 
 Run the online [demo](https://voicegender.herokuapp.com).
 
-Read the detailed [article](http://www.primaryobjects.com/2016/06/22/identifying-the-gender-of-a-voice-using-machine-learning/).
+Read the full article [Identifying the Gender of a Voice using Machine Learning](http://www.primaryobjects.com/2016/06/22/identifying-the-gender-of-a-voice-using-machine-learning/).
 
 This project trains a computer program to identify a voice as male or female, based upon acoustic properties of the voice and speech. The model is trained on a dataset consisting of 3,168 recorded voice samples, collected from male and female speakers. The voice samples are pre-processed by acoustic analysis in R and then processed with artificial intelligence/machine learning algorithms to learn gender-specific traits for classifying the voice as male or female.
 
@@ -104,7 +104,7 @@ After narrowing the frequency range to 0hz-280hz with a sound threshold of 15%, 
 
 ## Copyright
 
-Copyright (c) 2017 Kory Becker http://primaryobjects.com/kory-becker
+Copyright (c) 2022 Kory Becker http://primaryobjects.com/kory-becker
 
 ## Author
 
