@@ -62,8 +62,8 @@ shinyServer(function(input, output, session) {
     content <- ''
     inFile <- input$file1
 
-    if (grepl('.wav', tolower(inFile$name)) != TRUE) {
-      content <- '<div class="shiny-output-error-validation">Please select a .WAV file to upload.</div>'
+    if (grepl('.wav', tolower(inFile$name)) != TRUE && grepl('.mp3', tolower(inFile$name)) != TRUE) {
+      content <- '<div class="shiny-output-error-validation">Please select a .WAV or .MP3 file to upload.</div>'
     }
     else if (!is.null(inFile)) {
       disable('btnUrl')
@@ -115,7 +115,7 @@ shinyServer(function(input, output, session) {
       })
     }
     else {
-      content <- '<div class="shiny-output-error-validation">Please enter a url to vocaroo or clyp.it.</div>'
+      content <- '<div class="shiny-output-error-validation">Please enter a url to vocaroo or upload a wav/mp3 file.</div>'
     }
 
     enable('btnUrl')
@@ -130,10 +130,18 @@ shinyServer(function(input, output, session) {
   })
 })
 
+getFileExtension <- function(file) {
+    ex <- strsplit(basename(file), split="\\.")[[1]]
+    return(ex[-1])
+}
+
 processFile <- function(inFile, model) {
+  # Get the file extension.
+  fileExt <- getFileExtension(inFile$datapath)
+
   # Create a unique filename.
   id <- sample(1:100000, 1)
-  filePath <- paste0('./temp', sample(1:100000, 1), '/temp', id, '.wav')
+  filePath <- paste0('./temp', sample(1:100000, 1), '/temp', id, '.', fileExt)
 
   logEntry('File uploaded.', paste0('"id": "', id, '", "inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
 
@@ -150,6 +158,38 @@ processFile <- function(inFile, model) {
   file.copy(inFile$datapath, filePath)
 
   logEntry('File copied.', paste0('"id": "', id, '", inFile": "', inFile$datapath, '", "filePath": "', filePath, '"'))
+
+  # Convert mp3 to wav.
+  if (fileExt == "mp3") {
+      # Copy the temp file to our local folder.
+      file.copy(inFile$datapath, filePath)
+
+      # Set directory to read file.
+      setwd(path)
+
+      incProgress(0.2, message = 'Converting mp3 to wav ..')
+
+      # Convert mp3 to wav (does not always work due to bug with tuneR).
+      tryCatch({
+        # Use mcparallel to fork the process and hopefully recover from any R session crash.
+        if(.Platform$OS.type == 'unix') {
+          p <- mcparallel(try(mp32wav()))
+          # wait for job to finish and collect all results.
+          res <- mccollect(p)
+        }
+        else {
+          try(mp32wav())
+        }
+      })
+
+      # Restore path.
+      setwd(currentPath)
+
+      r <- readMP3(filePath)
+      wavFilePath <- gsub('.mp3', '.wav', filePath)
+      writeWave(r, wavFilePath, extensible=FALSE)
+      filePath <- wavFilePath
+  }
 
   # Process.
   result <- process(filePath)
