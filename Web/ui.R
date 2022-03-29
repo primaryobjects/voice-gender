@@ -74,12 +74,12 @@ shinyUI(fluidPage(
    #   )
    # ),
 
-   h4(id='main', 'Upload a .WAV file of your voice or enter a url from ', a(href='http://vocaroo.com', target='_blank', 'vocaroo.com'), ' to detect its gender.'),
+   h4(id='main', 'Upload a wav/mp3 file of your voice or enter a url from ', a(href='http://vocaroo.com', target='_blank', 'vocaroo.com'), ' to detect its gender.'),
    div(style='margin: 20px 0 0 0;'),
 
    inputPanel(
      div(id='uploadDiv', class='', style='height: 120px; border-right: 1px solid #ccc;',
-         fileInput('file1', 'Choose WAV File', accept = c('audio/wav'), width = '100%')
+         fileInput('file1', 'Upload wav or mp3 File', accept = c('audio/wav', 'audio/mp3'), width = '100%')
      ),
      div(id='urlDiv', class='',
          strong('Vocaroo Url'),
@@ -114,6 +114,6 @@ shinyUI(fluidPage(
    p('The program was trained on a dataset of 3,168 voice samples, split between male and female voices. By analyzing the acoustic properties of the voices, the program is able to achieve 89% accuracy on the test set.'),
    p('Interested in learning more? Read the complete ', a(href='http://www.primaryobjects.com/2016/06/22/identifying-the-gender-of-a-voice-using-machine-learning/', target='_blank', 'article')),
    p('Created by ', a(href='http://www.primaryobjects.com/kory-becker', target='_blank', 'Kory Becker'), br('7/28/2016'),
-   span(style='font-style: italic;', 'Updated 12/15/2021'))
+   span(style='font-style: italic;', 'Updated 3/29/2022'))
   ))
 ))
