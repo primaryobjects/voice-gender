@@ -253,7 +253,7 @@ processUrl <- function(url, model) {
       logEntry('Downloading url.', paste0('"id": "', id, '", "url": "', origUrl, '", "downloadUrl": "', mp3, '", "mp3FilePath": "', mp3FilePath, '", "wavFilePath": "', wavFilePath, '", "fileName": "', fileName, '", "path": "', path, '"'))
 
       # Download mp3 file.
-      download.file(mp3, mp3FilePath, mode='wb')
+      download.file(mp3, mp3FilePath, mode='wb', headers = c("User-Agent" = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36", "Referer" = paste0("https://vocaroo.com/", id)))
 
       print(mp3)
       print(path)
