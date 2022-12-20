@@ -10,7 +10,10 @@
             "request": "launch",
             "debugMode": "file",
             "workingDirectory": "${workspaceFolder}/Web",
-            "file": "${workspaceFolder}/Web/run.R"
+            "file": "${workspaceFolder}/Web/run.R",
+            "env": {
+                "VS_DEBUG": "1"
+            }
         }
     ]
 }
