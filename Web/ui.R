@@ -114,6 +114,6 @@ shinyUI(fluidPage(
    p('The program was trained on a dataset of 3,168 voice samples, split between male and female voices. By analyzing the acoustic properties of the voices, the program is able to achieve 89% accuracy on the test set.'),
    p('Interested in learning more? Read the complete ', a(href='http://www.primaryobjects.com/2016/06/22/identifying-the-gender-of-a-voice-using-machine-learning/', target='_blank', 'article')),
    p('Created by ', a(href='http://www.primaryobjects.com/kory-becker', target='_blank', 'Kory Becker'), br('7/28/2016'),
-   span(style='font-style: italic;', 'Updated 3/29/2022'))
+   span(style='font-style: italic;', 'Updated 12/19/2022'))
   ))
 ))
