@@ -1,14 +1,14 @@
 $(document).ready(function() {
     $('#btnUrl').click(function() {
-        if (typeof(ga) != 'undefined') {
+        /*if (typeof(ga) != 'undefined') {
             ga('send', 'event', 'btnUrl', 'click', $('#url').val());
-        }
+        }*/
     });
 
     $('#file1').click(function() {
-        if (typeof(ga) != 'undefined') {
+        /*if (typeof(ga) != 'undefined') {
             ga('send', 'event', 'file1', 'click');
-        }
+        }*/
     });
 
     $(document).keyup(function(event) {
@@ -26,16 +26,16 @@ $(document).ready(function() {
         $(this).css('cursor', 'wait');
 
         // Log event.
-        ga('send', 'event', 'buy', $('#lstLicense').val(), 'click');
+        //ga('send', 'event', 'buy', $('#lstLicense').val(), 'click');
 
         $('#m_OrderForm').submit();
-        
+
         return false;
     });
 
     $('#lstLicense').change(function() {
         // Log event.
-        ga('send', 'event', 'license', $(this).val(), 'change');
+        //ga('send', 'event', 'license', $(this).val(), 'change');
 
         onLicense();
     });
@@ -60,7 +60,7 @@ function onLicense() {
     var license = selectedText.length ? selectedText.match(/^([\w]+)/)[1] : ''; // Extract license name by first-word.
     var licenseName = 'Voice Gender App, ' + license; // Setup full license name.
     var code = 'VOICEGENDERAPP' + license.substr(0, 3).toUpperCase(); // Setup product code, using first 3 letters in license, upper-case (PER, BUS).
-    
+
     // Update price, item number, and item name.
     $("#m_OrderForm input[name='amount']").val(price);
     $("#m_OrderForm input[name='a3']").val(price);
