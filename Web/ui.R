@@ -80,12 +80,12 @@ shinyUI(fluidPage(
 
    inputPanel(
      div(id='uploadDiv', class='', style='height: 120px; border-right: 1px solid #ccc;',
-         fileInput('file1', 'Upload wav or mp3 File', accept = c('audio/wav', 'audio/mp3'), width = '100%')
+         fileInput('file2', 'Upload wav or mp3 File', accept = c('audio/wav', 'audio/mp3'), width = '100%')
      ),
      div(id='urlDiv', class='',
          strong('Vocaroo Url'),
          textInput('url', NULL, width = '100%'),
-         actionButton('btnUrl', 'Load Url', class='btn-primary', icon=icon('cloud'))
+         actionButton('btnUrl2', 'Load Url', class='btn-primary', icon=icon('cloud'))
      ),
      div('Please be patient after uploading or clicking submit.')
    ),
@@ -93,6 +93,8 @@ shinyUI(fluidPage(
    div(style='margin: 20px 0 0 0;'),
    div(id='result', style='font-size: 22px;', htmlOutput('content')),
    div(style='margin: 20px 0 0 0;'),
+
+  div(id='error-details', style='color: darkgray; margin: 0 0 20px 0;', textOutput('error')),
 
    conditionalPanel(condition='output.content != null && output.content.indexOf("Please enter") == -1',
      tabsetPanel(id='graphs',

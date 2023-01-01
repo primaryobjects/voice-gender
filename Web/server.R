@@ -61,24 +61,26 @@ enableActionButton <- function(id,session) {
 shinyServer(function(input, output, session) {
   v <- reactiveValues(data = NULL)
 
-  observeEvent(input$file1, {
-    # input$file1 will be NULL initially. After the user selects
+  observeEvent(input$file2, {
+    # input$file2 will be NULL initially. After the user selects
     # and uploads a file, it will be a data frame with 'name',
     # 'size', 'type', and 'datapath' columns. The 'datapath'
     # column will contain the local filenames where the data can
     # be found.
     content <- ''
-    inFile <- input$file1
+    inFile <- input$file2
 
     if (grepl('.wav', tolower(inFile$name)) != TRUE && grepl('.mp3', tolower(inFile$name)) != TRUE) {
       content <- '<div class="shiny-output-error-validation">Please select a .WAV or .MP3 file to upload.</div>'
     }
     else if (!is.null(inFile)) {
-      disableActionButton("btnUrl", session)
+      disableActionButton("btnUrl2", session)
       disableActionButton("url", session)
-      disableActionButton("file1", session)
+      disableActionButton("file2", session)
 
       withProgress(message='Please wait ..', style='old', value=0, {
+        output$error <- NULL
+
         result <- processFile(inFile, input$model)
 
         content <- result$content
@@ -88,29 +90,35 @@ shinyServer(function(input, output, session) {
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
         }
+
+        if (!is.null(result$summary$error)) {
+          output$error <- renderText(paste('Error:', result$summary$error))
+        }
       })
     }
 
-    enableActionButton("btnUrl", session)
+    enableActionButton("btnUrl2", session)
     enableActionButton("url", session)
-    enableActionButton("file1", session)
+    enableActionButton("file2", session)
 
     v$data <- content
   })
 
-  observeEvent(input$btnUrl, {
+  observeEvent(input$btnUrl2, {
     content <- ''
     url <- input$url
 
-    disableActionButton("btnUrl", session)
+    disableActionButton("btnUrl2", session)
     disableActionButton("url", session)
-    disableActionButton("file1", session)
+    disableActionButton("file2", session)
 
     if (url != '' && grepl('http', tolower(url)) && (grepl('vocaroo.com', url) || grepl('voca.ro', url) || grepl('clyp.it', url))) {
       # Extract url, removing any extraneous text.
       url <- regmatches(url, regexpr('(http|ftp|https)://([\\w_-]+(?:(?:\\.[\\w_-]+)+))([\\w.,@?^=%&:/~+#-]*[\\w@?^=%&/~+#-])?', url, perl=T))
 
       withProgress(message='Please wait ..', style='old', value=0, {
+        output$error <- NULL
+
         result <- processUrl(url, input$model)
 
         content <- result$content
@@ -120,15 +128,19 @@ shinyServer(function(input, output, session) {
           output$graph1 <- result$graph1
           output$graph2 <- result$graph2
         }
+
+        if (!is.null(result$summary$error)) {
+          output$error <- renderText(paste('Error:', result$summary$error))
+        }
       })
     }
     else {
       content <- '<div class="shiny-output-error-validation">Please enter a url to vocaroo or upload a wav/mp3 file.</div>'
     }
 
-    enableActionButton("btnUrl", session)
+    enableActionButton("btnUrl2", session)
     enableActionButton("url", session)
-    enableActionButton("file1", session)
+    enableActionButton("file2", session)
 
     v$data <- content
   })
@@ -358,6 +370,7 @@ process <- function(path) {
   graph2 <- NULL
   summary1 <- data.frame()
   summary2 <- data.frame()
+  error <- NULL
   freq <- list(minf = NULL, meanf = NULL, maxf = NULL)
 
   id <- gsub('.*temp(\\d+)\\.wav', '\\1', path)
@@ -459,12 +472,13 @@ process <- function(path) {
     #  }
   }, error = function(e) {
     print(e)
+    error <<- e$message
     if (grepl('cannot open the connection', e) || grepl('cannot open compressed file', e)) {
       restart(e)
     }
   })
 
-  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, summary=list(summary1=summary1, summary2=summary2), graph1=graph1, graph2=graph2, freq=freq)
+  list(content1=content1, content2=content2, content3=content3, content4=content4, content5=content5, summary=list(summary1=summary1, summary2=summary2, error=error), graph1=graph1, graph2=graph2, freq=freq)
 }
 
 colorize <- function(tag) {
