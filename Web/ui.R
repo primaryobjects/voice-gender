@@ -24,6 +24,7 @@ shinyUI(fluidPage(
                    ),
                    titlePanel('What is Your Voice Gender?'),
    mainPanel(width = '100%',
+   tags$iframe(src="https://github.com/sponsors/primaryobjects/button", title="Sponsor the Voice Gender App", height="35", width="116", style="border: 0;"),
 
    # tags$form(action="https://www.paypal.com/cgi-bin/webscr", method="post", name="m_OrderForm", id="m_OrderForm",
    #   tags$input(type="hidden", name="business", value="kbecker@primaryobjects.com"),
